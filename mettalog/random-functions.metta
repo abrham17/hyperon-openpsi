@@ -1,4 +1,7 @@
 ;; An implementation of pseudo random generators for meTTalog
+!(register-module! ../../hyperon-openpsi)
+!(import! &self hyperon-openpsi:mettalog:math-functions)
+!(import! &self hyperon-openpsi:mettalog:general-helpers)
 
 !(bind! &rand-gen (new-space))
 !(add-atom &rand-gen 42)
@@ -16,10 +19,6 @@
           )
             (/ $next 42949672967296) 
 ))
-(: >= (-> Number Number Bool))
-(= (>= $fir $sec) (if (or (> $fir $sec) (== $fir $sec)) True False))
-(: <= (-> Number Number Bool))
-(= (<= $fir $sec) (if (or (< $fir $sec) (== $fir $sec)) True False))
 
 (= (rand-float-range $min $max)
    (if (>= $min $max)
@@ -41,7 +40,7 @@
        ($u1 (rand-float))
        ($u2 (rand-float))
        
-       ($r (sqrt-math (* -2.0 (log-math 2.71828 $u1))))
+       ($r (sqrt-math (* -2.0 (ln $u1))))
        ($theta (* (* 2.0 3.14159265) $u2))
        ($z (* $r (cos-math $theta)))
 
@@ -58,7 +57,7 @@
 !(rand-float)
 !(rand-float)
 !(rand-float)
-;; !(pseudo-normal)
+!(pseudo-normal)
 ;;!(log-math 2 13)
 ;; !(pow-math 2 3.3)
 ;;!(% 15 2)
