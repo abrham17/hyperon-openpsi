@@ -1,0 +1,65 @@
+;; An implementation of pseudo random generators for meTTalog
+
+!(bind! &rand-gen (new-space))
+!(add-atom &rand-gen 42)
+
+(= (linear-congruential-generator $seed $a $c $m)
+   (% (+ (* $seed $a) $c) $m))
+
+
+(= (rand-float)
+   (let* (
+          ($seed (get-atoms &rand-gen))
+          ($_ (remove-atom &rand-gen $seed))
+          ($next (linear-congruential-generator $seed 1664525 1013904223 42949672967296))
+          ($_ (add-atom &rand-gen $next))
+          )
+            (/ $next 42949672967296) 
+))
+(: >= (-> Number Number Bool))
+(= (>= $fir $sec) (if (or (> $fir $sec) (== $fir $sec)) True False))
+(: <= (-> Number Number Bool))
+(= (<= $fir $sec) (if (or (< $fir $sec) (== $fir $sec)) True False))
+
+(= (rand-float-range $min $max)
+   (if (>= $min $max)
+        (Error "The first argument should be less than the second argument")
+        (let* (
+               ($rand_res (rand-float))
+               ($adder (* (- $max $min) $rand_res))
+               ($res (+ $min $adder)
+               
+               )
+            )
+            $res
+        )
+    )
+)
+
+(= (pseudo-normal' $mu $sigma)
+    (let* (
+       ($u1 (rand-float))
+       ($u2 (rand-float))
+       
+       ($r (sqrt-math (* -2.0 (log-math 2.71828 $u1))))
+       ($theta (* (* 2.0 3.14159265) $u2))
+       ($z (* $r (cos-math $theta)))
+
+    )
+        (+ $mu (* $sigma $z)) 
+    )
+)
+(= (pseudo-normal)
+    (pseudo-normal' 0 1)
+)
+!(>= 45 5)
+!(<= 45 5)
+!(rand-float-range 10 15)
+!(rand-float)
+!(rand-float)
+!(rand-float)
+;; !(pseudo-normal)
+;;!(log-math 2 13)
+;; !(pow-math 2 3.3)
+;;!(% 15 2)
+;;!(<< 15 3)
