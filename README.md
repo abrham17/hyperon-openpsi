@@ -27,7 +27,7 @@ The project is organized into the following directories:
 
 ## Getting Started
 
-To get started with the project, you will need to have [Hyperon](https://github.com/trueagi/hyperon-experimental) installed. Then, you can run the examples in the `use-cases` directory.
+To get started with the project, you will need to have [Hyperon](https://github.com/trueagi-io/hyperon-experimental) installed. Then, you can run the examples in the `use-cases` directory.
 
 For example, to run the ping-pong example, you can execute the following command:
 
