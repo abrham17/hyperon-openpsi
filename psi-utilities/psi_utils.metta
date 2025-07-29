@@ -1,4 +1,99 @@
-!(bind! uniRand (py-atom numpy.random.uniform))
+;; !(bind! uniRand (py-atom numpy.random.uniform))
+!(register-module! ../../hyperon-openpsi)
+!(import! &self hyperon-openpsi:mettalog:math-functions)
+!(import! &self hyperon-openpsi:mettalog:general-helpers)
+(: >= (-> Number Number Bool))
+(= (>= $fir $sec) (if (or (> $fir $sec) (== $fir $sec)) True False))
+(: <= (-> Number Number Bool))
+(= (<= $fir $sec) (if (or (< $fir $sec) (== $fir $sec)) True False))
+
+!(bind! &rand-gen (new-space))
+!(add-atom &rand-gen 42)
+(: series_summation (-> Number Number Number Number))
+(= (series_summation $y $iter $accum)
+    (if (< $iter 0)
+        (* 2 $accum)
+        (let* (
+            ($l_val (/ 1 (+ (* 2 $iter) 1)))
+            ($r_val  (pow-math $y (+ (* 2 $iter) 1)))
+            ($term (* $l_val $r_val))
+            ($accum' (+ $accum $term))
+        )
+            (series_summation $y (- $iter 1) $accum')
+        )
+    )
+)
+
+;; This function computes the x multiplicand which is independent of the logarithmic calculation.
+(: x_multiplicand (-> Number Number))
+(= (x_multiplicand $x) (/ (- $x 1) (+ $x 1)))
+
+(= (ln $x)
+    (if (< $x 0)
+        (Error "The x value is an error")
+        (let* (
+            ($y (x_multiplicand $x))
+            ($result (series_summation $y 100 0))
+        )
+            $result
+        )
+    )
+)
+;; based on the laws of logarithms
+(= (log $x $base)
+    (/ (ln $x) (ln $base))
+)
+
+;; An implementation of the linear congruential generator. This implementation takes seed values to generate a pseudo-random number
+;; which is going to be used in the mettalog implementation.
+(: linear-congruential-generator (-> Number Number Number Number Number))
+(= (linear-congruential-generator $seed $a $c $m)
+   (% (+ (* $seed $a) $c) $m))
+
+(: rand-float (-> Number))
+(= (rand-float)
+   (let* (
+          ($seed (get-atoms &rand-gen))
+          ($_ (remove-atom &rand-gen $seed))
+          ($next (linear-congruential-generator $seed 1664525 1013904223 42949672967296))
+          ($_ (add-atom &rand-gen $next))
+          )
+            (/ $next 42949672967296) 
+))
+(: rand-float-range (-> Number Number Number))
+(= (rand-float-range $min $max)
+   (if (>= $min $max)
+        (Error "The first argument should be less than the second argument")
+        (let* (
+               ($rand_res (rand-float))
+               ($adder (* (- $max $min) $rand_res))
+               ($res (+ $min $adder)
+               
+               )
+            )
+            $res
+        )
+    )
+)
+;;An implementation of the normal function based on the box-muller transform
+
+(= (pseudo-normal' $mu $sigma)
+    (let* (
+       ($u1 (rand-float))
+       ($u2 (rand-float))
+       
+       ($r (sqrt-math (* -2.0 (ln $u1))))
+       ($theta (* (* 2.0 3.14159265) $u2))
+       ($z (* $r (cos-math $theta)))
+
+    )
+        (+ $mu (* $sigma $z)) 
+    )
+)
+(= (pseudo-normal)
+    (pseudo-normal' 0 1)
+)
+
 (= (fuzzy_equal $x $t $a)
    ( / 1 (+ 1 (* $a (* (- $x $t) (- $x $t)))))
 )
@@ -7,7 +102,7 @@
 (= (fuzzy_within $x $min_val $max_val $a)
     (if (< $x $min_val)
                 (fuzzy_equal $x $min_val $a) ; x < min value
-                (let $rand (uniRand) 
+                (let $rand (pseudo-normal) 
                     (if (> $x $max_val) 
                         (+ 0.999 (* $rand 0.001)) ; x > max value
                         (+ 0.99 (* $rand 0.01)) ; min value < x < max value

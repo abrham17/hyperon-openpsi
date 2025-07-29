@@ -5,11 +5,13 @@
 
 !(bind! &rand-gen (new-space))
 !(add-atom &rand-gen 42)
-
+;; An implementation of the linear congruential generator. This implementation takes seed values to generate a pseudo-random number
+;; which is going to be used in the mettalog implementation.
+(: linear-congruential-generator (-> Number Number Number Number Number))
 (= (linear-congruential-generator $seed $a $c $m)
    (% (+ (* $seed $a) $c) $m))
 
-
+(: rand-float (-> Number))
 (= (rand-float)
    (let* (
           ($seed (get-atoms &rand-gen))
@@ -19,7 +21,7 @@
           )
             (/ $next 42949672967296) 
 ))
-
+(: rand-float-range (-> Number Number Number))
 (= (rand-float-range $min $max)
    (if (>= $min $max)
         (Error "The first argument should be less than the second argument")
@@ -34,6 +36,7 @@
         )
     )
 )
+;;An implementation of the normal function based on the box-muller transform
 
 (= (pseudo-normal' $mu $sigma)
     (let* (
@@ -51,13 +54,13 @@
 (= (pseudo-normal)
     (pseudo-normal' 0 1)
 )
-!(>= 45 5)
-!(<= 45 5)
-!(rand-float-range 10 15)
-!(rand-float)
-!(rand-float)
-!(rand-float)
-!(pseudo-normal)
+;; !(>= 45 5)
+;; !(<= 45 5)
+;; !(rand-float-range 10 15)
+;; !(rand-float)
+;; !(rand-float)
+;; !(rand-float)
+;; !(pseudo-normal)
 ;;!(log-math 2 13)
 ;; !(pow-math 2 3.3)
 ;;!(% 15 2)
