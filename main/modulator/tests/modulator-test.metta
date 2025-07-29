@@ -7,6 +7,7 @@
 !(bind! &test-space (new-space))
 
 !(insert-modulators &test-space)
+!(get-atoms &test-space)
 !(assertEqual (fetch-modulator &test-space securing-threshold) (modulator securing-threshold 0.5))
 !(fetch-modulator &test-space securing-threshold)
 !(fetch-modulator-val &test-space securing-threshold)
