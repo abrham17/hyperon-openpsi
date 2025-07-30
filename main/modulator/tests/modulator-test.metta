@@ -2,7 +2,7 @@
 !(register-module! ../../../utilities-module)
 !(import! &self utilities-module:utils)
 !(import! &self hyperon-openpsi:psi-utilities:psi_utils)
-!(import! &self hyperon-openpsi:main:modulator:modulator)
+!(import! &self hyperon-openpsi:main/modulator:modulator)
 
 !(bind! &test-space (new-space))
 
