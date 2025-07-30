@@ -24,7 +24,7 @@
 )
 
 (= (getAllDemands $space)
-    (collapse (match $space (demand $x $_) (demand $x $_)))
+    (collapse (match $space (demand $x $y) (demand $x $y)))
 )
 
 
@@ -42,7 +42,7 @@
 
 (= (getEnabledDemands $space)
     (let* (
-       ( $skippedDemands (collapse (match $space (, (demand $x $_) (skip $x)) (demand $x $_)) ))
+       ( $skippedDemands (collapse (match $space (, (demand $x $y) (skip $x)) (demand $x $y)) ))
     
        ( $allDemands (getAllDemands $space))
     
