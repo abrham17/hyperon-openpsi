@@ -30,7 +30,7 @@ The project is organized into the following directories:
 1. To get started with the project, you will need to have [Hyperon](https://github.com/trueagi-io/hyperon-experimental) installed.
 Because this project requires specific versions of Hyperon and NumPy, it is recommended to install them directly (perhaps in your own virtual environment):
 ```
-python -m pip install hyperon==0.2.3  numpy==2.2.1
+python3 -m pip install hyperon==0.2.3  numpy==2.2.1
 ```
 
 2. Then, you need to initialize the git submodule:
