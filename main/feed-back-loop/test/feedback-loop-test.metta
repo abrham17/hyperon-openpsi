@@ -106,7 +106,8 @@
 	       )))
 
 
-
+;; The demands are represented based on their satifsaction, 
+;; a lower satisfation will require urgent response.
 (: demandSelector' (-> Expression Number Demand))
 (= (demandSelector' $demands $maxDemand)
    	(if (== $demands ()) 
@@ -115,7 +116,7 @@
 		       	((demand $maxName $maxVal) $maxDemand)
 		       	(((demand $currName $currVal) $tail) (decons-atom $demands))
 		       )
-		  	(if (>= $currVal $maxVal)
+		  	(if (<= $currVal $maxVal)
 			  	(demandSelector' $tail (demand $currName $currVal))
 				(demandSelector' $tail $maxDemand)
 			)
