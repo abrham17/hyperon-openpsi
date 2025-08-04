@@ -1,5 +1,7 @@
+
+
 (: compareModulatorValues (-> Modulator Modulator Bool))
-(=(compareModulatorValues (modulator $x $y) (modulator $x' $y'))
+(= (compareModulatorValues (modulator $x $y) (modulator $x' $y'))
     (if (and (== $x $x') (== $y $y')) True False)
 )
 (= (not-eq $at-1 $at-2)
@@ -9,7 +11,7 @@
 (= (all $expressions) (if (isMember False $expressions) False True))
 
 
-;; Implementation of the dataset 
+
 (: compareModulators (-> hyperon::space::DynSpace hyperon::space::DynSpace Bool))
 (= (compareModulators $modulatorSpace $demandSpace)
     (let* (

@@ -39,9 +39,9 @@
 		    ($activationModulator (fetch-modulator $modulatorSpace arousal))
 		    ($securingModulator (fetch-modulator $modulatorSpace securing-threshold))
 		    ($selectionModulator (fetch-modulator $modulatorSpace selection-threshold))
-		    ($_ (update-atom $modulatorSpace $activationModulator (modulator arousal $activationValue)))
-		    ($_ (update-atom $modulatorSpace $securingModulator (modulator securing-threshold $securingValue)))
-		    ($_ (update-atom $modulatorSpace $selectionModulator (modulator selection-threshold $selectionValue)))
+		    ($activationResult (update-atom $modulatorSpace $activationModulator (modulator arousal $activationValue)))
+		    ($securingResult (update-atom $modulatorSpace $securingModulator (modulator securing-threshold $securingValue)))
+		    ($selectionResult (update-atom $modulatorSpace $selectionModulator (modulator selection-threshold $selectionValue)))
 	
  	)
 	  ()
