@@ -115,6 +115,5 @@
 
 
 
-or its contents (atoms) to be deleted.
 ;; The cache space in this scenario is used for optimizing the code. 
 ;; since similarity checks for an s-expression or a list takes atleas
