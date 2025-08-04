@@ -1,12 +1,16 @@
+;; !(register-module! ../../../../utilities-module)
 !(register-module! ../../../../../hyperon-openpsi)
-!(register-module! ../../../../utilities-module)
-!(import! &self utilities-module:utils)
+
+!(import! &self hyperon-openpsi:utilities-module:utils)
 !(import! &self hyperon-openpsi:psi-utilities:psi_utils)
-!(import! &self hyperon-openpsi:main/mind-agents:feeling-updater:feeling-updaters)
+!(import! &self hyperon-openpsi:main:mind-agents/feeling-updater/feeling-updaters)
 !(import! &self hyperon-openpsi:main/modulator:modulator)
 
 
 !(insert-modulators &modulator-space)
+
+;; !(insert)
+!(This is the anger feeling updater (angerFeelingUpdater &modulator-space))
 !(assertEqual (modulator_to_feeling_dimension 0.85 1) 1)
 !(assertEqual (feeling_calculator &modulator-space 1 1 1 1 1 5) 0.2666666666666667)
 !(assertEqual (happinessFeelingUpdater &modulator-space) 0.25000000000000006)

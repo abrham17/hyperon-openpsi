@@ -206,7 +206,7 @@
     )
 )    
 
-(=(angerFeelingUpdater $modulator_space)
+(= (angerFeelingUpdater $modulator_space)
     (feeling_calculator $modulator_space 
                         (modulator_high_indicator)
                         (modulator_low_indicator)
