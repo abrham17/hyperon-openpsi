@@ -35,30 +35,31 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 from pydantic import BaseModel
 
+import re
+import re
+
+import re
 
 def validateSyntax(rule: str) -> bool:
-    # The pattern is designed to match a specific MeTTa rule structure.
-    # It uses \s* to allow for zero or more whitespace characters, making the validation flexible with spacing.
-    pattern = r"""
-    \(\(:\s*
-    ([a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*)\s*                     # handle
-    \(\(TTV\s*\d\s*
-    \(STV\s*\d\.\d\s+\d\.\d\s*\)\)\s*
-    \(IMPLICATION_LINK\s*
-    \(AND_LINK\s*
-    \(\(\s*Goal\s+([a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*)\s+\d\.\d\s+\d\.\d\s*\)\s*
-    ([a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*)\s*\)\)\s*
-    \(Goal\s+([a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*)\s+\d\.\d\s+\d\.\d\s*\)
-    \)\)\)\s*
-    ([0-1](\.\d+)?|2(\.0)?)\s*\)
-    """
+    rule = rule.strip()
+    
+    # Adjusted regex to support underscores and multi-line formatting
+    pattern = re.compile(
+        r'''
+        ^\(\(:\s*\w+\s+                                   # rule ID (e.g., r7)
+        \(\(TTV\s+\d+\s+\(STV\s+[0-9.]+\s+[0-9.]+\)\)\s+   # TTV and STV
+        \(IMPLICATION_LINK\s+
+            \(AND_LINK\s+
+                \(\(Goal\s+[\w\-]+                         # Goal name (allowing _)
+                \s+[0-9.]+\s+[0-9.]+\)\s+                   # Goal confidence values
+                [\w\-]+\)\)\s+                             # Action name (with _ allowed)
+            \(Goal\s+[\w\-]+\s+[0-9.]+\s+[0-9.]+\)         # Goal conclusion
+        \)\)\)\s+[0-9.]+\)$                                # trailing number (score)
+        ''',
+        re.VERBOSE | re.DOTALL
+    )
 
-    print(f"""
-          
-          Validating rule syntax: {rule}
-
-        """)
-    return bool(re.match(pattern, rule, re.VERBOSE))
+    return bool(pattern.match(rule))
 
 
 def validateExistence(rule: str, ruleSpace: List[str]) -> bool:
@@ -222,7 +223,7 @@ def generateResponse(user_input: str) -> dict:
 
 
 def pyModule(metta: MeTTa, name: Atom, *args: Atom):
-    print("Args : ", args)
+    # print("Args : ", args)
     payload_expression: ExpressionAtom = args[0]
     actual_arg_atoms = payload_expression.get_children()
     functionName = name.get_name()
@@ -255,35 +256,45 @@ def test_func(name: str):
 
 
 def call_correlation_model(state: AgentState, config: RunnableConfig):
+    
+
     # Properly format the system message
     system_message_template = """
 Your task is to select and sort cognitive schematic rules from the list provided in {rules_list}, based on their relevance to the current chat conversation summary ({conversation_summary}) and the latest user response ({userResponse}).
 
 Each rule follows this strict format:
-((: {{schema.handle}} ({{schema.tv}} (IMPLICATION_LINK (AND_LINK ({{schema.context}} {{schema.action}})) {{schema.goal}}))) {{schema.weight}})
+((: {{handle}} ({{tv}}) (IMPLICATION_LINK (AND_LINK (({{context}}) {{action}})) ({{goal}})))) {{weight}})
 
 Where:
-- {{schema.handle}} is the symbolic name for the rule (e.g., r1)
-- {{schema.tv}} is the truth value format, e.g., (TTV 1 (STV 0.8 0.7))
-- {{schema.context}} is a Goal expression that defines the context (e.g., (Goal Conversation-Started 0.9 0.6))
-- {{schema.action}} is the action to take (e.g., initiate-dialogue)
-- {{schema.goal}} is the target Goal of the implication (e.g., (Goal Send-Greeting 1.0 1.0))
-- {{schema.weight}} is a number between 0 and 2 indicating the rule's strength
+- {{handle}} is the symbolic name for the rule (e.g., r1)
+- {{tv}} is the truth value format, e.g., (TTV 1 (STV 0.8 0.7))
+- {{context}} is a Goal expression that defines the context (e.g., (Goal Conversation-Started 0.9 0.6))
+- {{action}} is the action to take (e.g., initiate-dialogue)
+- {{goal}} is the target Goal of the implication (e.g., (Goal Send-Greeting 1.0 1.0))
+- {{weight}} is a number between 0 and 2 indicating the rule's strength
 
 Instructions:
-- Return only a **single-line JSON array** of **valid rule strings** in the format:
-["((: r1 ((TTV 1 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Conversation-Started 0.9 0.6) initiate-dialogue)) (Goal Send-Greeting 1.0 1.0)))) 4)", ...]
-- Each rule must be an exact match from the provided {rules_list}.
-- The output array must be a **subset** of the original list, sorted in descending order of relevance to the conversation.
+- From the provided {rules_list}, select the most relevant rules and return them as a JSON object conforming to the `SchemaList` structure.
+- The `SchemaList` object should contain a `rules` field, which is a list of `Schema` objects.
+- Each `Schema` object must accurately represent a rule from the {rules_list} by extracting its components:
+    - `handle`: The symbolic name (e.g., "r1").
+    - `tv`: The full truth value expression (e.g., "(TTV 1 (STV 0.8 0.7))").
+    - `context`: The full context Goal expression (e.g., "(Goal Conversation-Started 0.9 0.6)").
+    - `action`: The action string (e.g., "initiate-dialogue").
+    - `goal`: The full target Goal expression (e.g., "(Goal Send-Greeting 1.0 1.0)").
+    - `weight`: The final strength or value (e.g., 4 or 7.0).
+- The `rules` array in the `SchemaList` must be a **subset** of the original {rules_list}, sorted in descending order of relevance to the conversation.
 - You must **not add**, **modify**, or generate new rules.
-- Do **not** include any explanations, comments, or formatting outside of the JSON array.
+- Do **not** include any explanations, comments, or formatting outside of the JSON object.
 """
+
 
     system_message_text = system_message_template.format(
         conversation_summary=state.get("summary", ""),
-        rules_list=config.get("rules_list", ""),
+        rules_list=config.get("metadata").get("rules_list", ""),
         userResponse=state.get("messages")[-1].content,
     )
+    print(f"Current System Message {system_message_text}")
 
     # Compose message list (assuming LangChain-style message objects)
     messages = [SystemMessage(content=system_message_text)] + state["messages"]
@@ -341,12 +352,12 @@ def correlate(
     #     print(f"Raw response: {result.strip()}")
     #     return []  # Return an empty list or handle the error as appropriate
 
-
 def parse_schema(schema: Schema) -> str:
-    """A function that parses a cognitive Schema into represented in Python to MeTTa structure."""
-    # Assuming context, action, and goal are already in the correct Metta format
-    # Format weight as an integer to match the expected output
-    return f"""((: {schema.handle} ({schema.tv} (IMPLICATION_LINK (AND_LINK ({schema.context} {schema.action})) {schema.goal}))) {schema.weight})"""
+    """Parses a cognitive Schema into properly formatted MeTTa-compatible syntax."""
+    return f"""((: {schema.handle} (({schema.tv}) 
+        (IMPLICATION_LINK 
+          (AND_LINK (({schema.context}) {schema.action})) 
+          ({schema.goal})))) {schema.weight})"""
 
 
 def rules_to_lists(rules: str) -> List[str]:
@@ -381,7 +392,12 @@ def correlation_matcher(
     print("Parsed rules: ", rules_list)
 
     for rule_string in rules_list:
-        print("validating synthax: ", validateSyntax(rule_string))
+        print(f"""validating synthax: {validateSyntax(rule_string)}
+
+for the rule : {rule_string}
+
+              """)
+
         if validateSyntax(rule_string):
         # if rule_string in rule_list: TODO: enforce this later with the existence validator.
             return rule_string
@@ -391,8 +407,9 @@ def correlation_matcher(
 
 if __name__ == "__main__":
     rules = """
-    ((: r1 ((TTV 1 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Conversation-Started 0.9 0.6) initiate-dialogue)) (Goal Send-Greeting 1.0 1.0)))) 4)
-    ((: r2 ((TTV 2 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Send-Greeting 0.9 0.6) elicit-response)) (Goal Receive-User-Response 1.0 1.0)))) 7)
+    ((: r2 (TTV 2 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Send-Greeting 0.9 0.6) elicit-response)) (Goal Receive-User-Response 1.0 1.0)))) 7)
+    (((: r1 ((TTV 1 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Conversation-Started 0.9 0.6) initiate-dialogue)) (Goal Send-Greeting 1.0 1.0)))) 4)
+    ((: r2 ((TTV 2 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Send-Greeting 0.9 0.6) elicit-response)) (Goal Receive-User-Response 1.0 1.0)))) 7.0)
     ((: r3a ((TTV 3 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Receive-User-Response 0.9 0.6) interpret-mood)) (Goal Understand-Initial-Mood 1.0 1.0)))) 8)
     ((: r3b ((TTV 3 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Receive-User-Response 0.9 0.6) interpret-context)) (Goal Understand-Initial-Context 1.0 1.0)))) 5)
     ((: r4 ((TTV 4 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Initial-Mood 0.9 0.6) probe-mood)) (Goal Explore-Mood-Details 1.0 1.0)))) 6)
@@ -410,7 +427,7 @@ if __name__ == "__main__":
     ((: d4 ((TTV 15 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Learn-Activity-Details 0.9 0.6) offer-advice)) (Goal Provide-Feedback 1.0 1.0)))) 10)
     ((: d5 ((TTV 16 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Hobby-Preferences 0.9 0.6) explore-unrelated-topics)) (Goal Off-Topic-Discussion 1.0 1.0)))) 7)
     ((: d6 ((TTV 17 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Future-Goals 0.9 0.6) ask-irrelevant-question)) (Goal Irrelevant-Topic 1.0 1.0)))) 9)
-    ((: d7 ((TTV 18 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Explore-Mood-Details 0.9 0.6) share-story)) (Goal Engage-User-Story 1.0 1.0)))) 8)
+    ((: d7 ((TTV 18 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Explore-Mood-Details 0.9 0.6) share-story)) (Goal Engage-User-Story 1.0 1.0)))) 8))
     """
     print(rules_to_lists(rules))
     res = correlation_matcher(
