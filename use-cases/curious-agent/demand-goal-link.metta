@@ -48,7 +48,7 @@
 (= (goal-selector $space $demand)
     (let* (
         ($relatedGoals (collapse (get-type-space $space $demand)))
-        (() (println! (related-goals= $relatedGoals)))
+        ; (() (println! (related-goals= $relatedGoals)))
         ($selectedGoal (find-best-goal $relatedGoals))
     )
     $selectedGoal
