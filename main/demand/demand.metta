@@ -1,6 +1,4 @@
 !(bind! &demandspace (new-space))
-!(bind! &cacheSpace (new-space))
-
 (: Demand Type)
 (: SkipDemand Type)
 ; (: demand (-> Symbol Number Demand))
@@ -9,31 +7,28 @@
 ; (: addDemand (-> hyperon::space::DynSpace Symbol Number Demand))
 (= (addDemand $space $name $value)
     (let* (
-        ($demand (demand $name $value))
-        ; ($duplicateDemandList  (match $space (demand $name $v) (demand $name $v)))
-      
-       
-
-        (() (add-atom $space $demand))
-    )
+            ($demand (demand $name $value))
+            ; ($duplicateDemandList  (match $space (demand $name $v) (demand $name $v)))
+            (() (add-atom $space $demand))
+        )
      ()
     )
     )
 
-
-(= (getAllDemands $space)
-    (collapse (match $space (demand $x $_) (demand $x $_)))
+(= (fetch-demand $space $name)
+    (match $space (demand $name $x) (demand $name $x))
 )
 
-!(add-reduct &demandspace (superpose (
-        (demand energy 0.5)
-        (demand affiliation 0.5)
-        (demand competence 0.5)
-        
-    
-)))
+(= (fetch-demand-val $space $name)
+    (let ($x $y $z) (fetch-demand $space $name) $z)
+)
 
-(= (skipDemand $space $demand ) 
+(= (getAllDemands $space)
+    (collapse (match $space (demand $x $y) (demand $x $y)))
+)
+
+
+(= (skipDemand $space $demand) 
     (let* (
         ($skip (collapse (match $space (skip $demand) (skip $demand))))
         ( $isNotFound (== $skip ()))
@@ -45,14 +40,9 @@
     )
 )
 
-
-; !(add-reduct &demandspace (superpose (
-;         (skip competence 0.5)
-; )))
-
 (= (getEnabledDemands $space)
     (let* (
-       ( $skippedDemands (collapse (match $space (, (demand $x $_) (skip $x)) (demand $x $_)) ))
+       ( $skippedDemands (collapse (match $space (, (demand $x $y) (skip $x)) (demand $x $y)) ))
     
        ( $allDemands (getAllDemands $space))
     
@@ -73,20 +63,8 @@
     )
 
 )
+(= (getDemandByName $space $name) (match $space (demand $name $x) (demand $name $x)))
 
-
-!(skipDemand energy)
-!(skipDemand affiliation)
-
-!(setDemandValue energy 0.6)
-
-
-!(getEnabledDemands)
-
-
-!(get-atoms &demandspace)
-
-
-
-
-
+!(addDemand &demandspace energy 0.6)
+!(addDemand &demandspace affiliation 0.5)
+!(addDemand &demandspace competence 0.2)

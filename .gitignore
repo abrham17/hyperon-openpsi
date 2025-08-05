@@ -2,3 +2,9 @@
 **/__pycache__
 **/env
 **/testting
+/venv
+/.env
+**/*.pl
+**/*.html
+**/*.metta.html
+**/*.metta.pl
