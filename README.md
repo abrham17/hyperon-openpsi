@@ -27,8 +27,26 @@ The project is organized into the following directories:
 
 ## Getting Started
 
-To get started with the project, you will need to have [Hyperon](https://github.com/trueagi/hyperon-experimental) installed. Then, you can run the examples in the `use-cases` directory.
+1. To get started with the project, you will need to have [Hyperon](https://github.com/trueagi-io/hyperon-experimental) installed.
+Because this project requires specific versions of Hyperon and NumPy, it is recommended to install them directly (perhaps in your own virtual environment):
+```
+python3 -m pip install hyperon==0.2.3  numpy==2.2.1
+```
 
+2. Then, you need to initialize the git submodule:
+```
+git submodule update --init --recursive        
+cd utilities-module/
+git checkout main
+git pull
+```
+
+3. (Optional) Run tests to verify installation
+```
+cd .. && python3 test/run-tests.py
+```
+
+4. Then, you can run the examples in the `use-cases` directory.
 For example, to run the ping-pong example, you can execute the following command:
 
 ```
