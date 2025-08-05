@@ -22,10 +22,6 @@ def parse_action(actions: str) -> List[Action]:
     return action_tuple
 
 
-def parse_exp(sexpr: str) -> List[Schema]:
-    """A function that parses an expression from MeTTa to Python."""
-    pass
-
 
 def parse_state_params(state_params: str) -> StateParams:
     """
