@@ -22,7 +22,7 @@
         (: (demand certainty 1.0) (Goal Conclude-Conversation 0.58 0.07))
     )))
 )
-(= (get-goal-value (Goal $goal_name $goal_value $mean_stv))
+(= (get-goal-value (Goal $goal_name $goal_value $target_goal_value))
     $goal_value
 )
 (= (find-best-goal_ $related_goals $max_value $best_goal)
