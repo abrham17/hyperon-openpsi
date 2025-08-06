@@ -25,7 +25,7 @@
 (= (get-goal-value (Goal $goal_name $goal_value $target_goal_value))
     $goal_value
 )
-(= (find-best-goal_ $related_goals $max_value $best_goal)
+(= (find-best-goal' $related_goals $max_value $best_goal)
     (if (== $related_goals ()) $best_goal 
         (let* (
             ($current-goal (car-atom $related_goals))
@@ -35,15 +35,15 @@
             ; (() (println! (currentgoal= $current-goal , current-goal-value= $current_goal_value , next-goals= $next_goals)))
         )
             (if (> $current_goal_value $max_value)
-                (find-best-goal_ $next_goals $current_goal_value $current-goal)
-                (find-best-goal_ $next_goals $max_value $best_goal)
+                (find-best-goal' $next_goals $current_goal_value $current-goal)
+                (find-best-goal' $next_goals $max_value $best_goal)
             )
         )
     )
 )
 
 (= (find-best-goal $goals)
-    (find-best-goal_ $goals 0 ())
+    (find-best-goal' $goals 0 ())
 )
 (= (goal-selector $space $demand)
     (let* (
@@ -57,7 +57,7 @@
 
 
 ; !(get-goal-value (Goal Confirm-Insight-Accuracy 0.9 0.6))
-; !(find-best-goal_ 
+; !(find-best-goal' 
 ;     ((Goal Confirm-Insight-Accuracy 0.5 0.6) 
 ;      (Goal confirm-goal-accuracy 0.01 0.6) 
 ;      (Goal refine-topic-understanding 0.1 0.6)) 

@@ -9,7 +9,7 @@
 !(populate-link-space &linkSpace)
 
 !(assertEqual (get-goal-value (Goal Confirm-Insight-Accuracy 0.9 0.6)) 0.9 )
-!(assertEqual (find-best-goal_ 
+!(assertEqual (find-best-goal' 
   ((Goal Confirm-Insight-Accuracy 0.5 0.6) 
    (Goal confirm-goal-accuracy 0.01 0.6) 
    (Goal refine-topic-understanding 0.1 0.6)) 
