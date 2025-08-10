@@ -35,7 +35,7 @@
       0
       (let* (($lsbx (lsb $x))
              ($lsby (lsb $y))
-             ($low (mod32 (* $lsbx $lsby) 2))  ; Ensure bit is 0 or 1
+             ($low (* $lsbx $lsby))  ; Ensure bit is 0 or 1
              ($rest (bit-and (bit-shift-right $x 1) (bit-shift-right $y 1)))
              ($result (+ $low (* 2 $rest))))  ; Combine: low + 2 * rest
         $result)))
