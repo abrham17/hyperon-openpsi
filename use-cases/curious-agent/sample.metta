@@ -161,4 +161,7 @@
 
 !(loop)
 
+;; TODO:
+;; - Poplulate demand and modulator spaces .
+;; - Fix the way these spaces are used in the feedbackloop if problems persist.
 
