@@ -12,6 +12,7 @@ import re
 
 # from adapter import *
 from hyperon import *
+from hyperon import MeTTa
 from hyperon.ext import register_atoms
 from hyperon.atoms import (
     OperationAtom,
@@ -28,7 +29,6 @@ from langchain_core.messages import (
     HumanMessage,
     RemoveMessage,
     SystemMessage,
-
 )
 from langgraph.graph import END
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -40,12 +40,13 @@ import re
 
 import re
 
+
 def validateSyntax(rule: str) -> bool:
     rule = rule.strip()
-    
+
     # Adjusted regex to support underscores and multi-line formatting
     pattern = re.compile(
-        r'''
+        r"""
         ^\(\(:\s*\w+\s+                                   # rule ID (e.g., r7)
         \(\(TTV\s+\d+\s+\(STV\s+[0-9.]+\s+[0-9.]+\)\)\s+   # TTV and STV
         \(IMPLICATION_LINK\s+
@@ -55,8 +56,8 @@ def validateSyntax(rule: str) -> bool:
                 [\w\-]+\)\)\s+                             # Action name (with _ allowed)
             \(Goal\s+[\w\-]+\s+[0-9.]+\s+[0-9.]+\)         # Goal conclusion
         \)\)\)\s+[0-9.]+\)$                                # trailing number (score)
-        ''',
-        re.VERBOSE | re.DOTALL
+        """,
+        re.VERBOSE | re.DOTALL,
     )
 
     return bool(pattern.match(rule))
@@ -256,8 +257,6 @@ def test_func(name: str):
 
 
 def call_correlation_model(state: AgentState, config: RunnableConfig):
-    
-
     # Properly format the system message
     system_message_template = """
 Your task is to select and sort cognitive schematic rules from the list provided in {rules_list}, based on their relevance to the current chat conversation summary ({conversation_summary}) and the latest user response ({userResponse}).
@@ -288,7 +287,6 @@ Instructions:
 - Do **not** include any explanations, comments, or formatting outside of the JSON object.
 """
 
-
     system_message_text = system_message_template.format(
         conversation_summary=state.get("summary", ""),
         rules_list=config.get("metadata").get("rules_list", ""),
@@ -306,11 +304,10 @@ Instructions:
 
     # Parse rules from response
     # Assuming response is a dict with .rules or a stringified JSON array
-    
 
     # Return updated state
     return {
-        "messages": state["messages"] ,
+        "messages": state["messages"],
         "summary": state["summary"],
         "rules_list": response.rules,
     }
@@ -351,6 +348,7 @@ def correlate(
     #     print(f"Error decoding JSON from Gemini response: {e}")
     #     print(f"Raw response: {result.strip()}")
     #     return []  # Return an empty list or handle the error as appropriate
+
 
 def parse_schema(schema: Schema) -> str:
     """Parses a cognitive Schema into properly formatted MeTTa-compatible syntax."""
@@ -399,11 +397,12 @@ for the rule : {rule_string}
               """)
 
         if validateSyntax(rule_string):
-        # if rule_string in rule_list: TODO: enforce this later with the existence validator.
+            # if rule_string in rule_list: TODO: enforce this later with the existence validator.
             return rule_string
 
     # Return None if no valid rule is found after checking all selected rules
     return ""
+
 
 if __name__ == "__main__":
     rules = """
@@ -436,3 +435,19 @@ if __name__ == "__main__":
         "I want to learn a new hobby",
     )
     print(res)
+
+metta = MeTTa()
+
+
+def eval_string(s):
+    """
+    Evaluate a MeTTa code string and return the result(s) as atoms.
+    Example: "(a b c)" -> [(a b c)]
+    """
+    if not isinstance(s, str):
+        raise TypeError(f"Expected string, got {type(s)}")
+    return metta.run(s)
+
+
+# Register in this MeTTa instance
+metta.register_atom(OperationAtom("eval-string", eval_string))
