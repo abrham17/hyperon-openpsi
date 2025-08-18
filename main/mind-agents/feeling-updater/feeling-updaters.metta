@@ -140,12 +140,12 @@
                        $securing_threshold_indicator 
                        $selection_threshold_indicator 
                        $pleasure_indicator 
-                       $number_of_used_modulators)
-    (let* (
-	((modulator arousal $activation-value) (fetch-modulator $modulator_space arousal))
+                       $number_of_used_modulators
+    ) (let* (
+              ((modulator arousal $activation-value) (fetch-modulator $modulator_space arousal))
     
     
-	((modulator securing-threshold $securing-value) (fetch-modulator $modulator_space securing-threshold))
+              ((modulator securing-threshold $securing-value) (fetch-modulator $modulator_space securing-threshold))
     
     
 	((modulator selection-threshold $selection-value) (fetch-modulator $modulator_space selection-threshold))

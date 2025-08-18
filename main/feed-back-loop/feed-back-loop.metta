@@ -1,7 +1,3 @@
-
-!(bind! &kb (new-space))
-
-
 (: remove-atoms' (-> Grounded Expression Expression))
 (= (remove-atoms' $space $expression)
     (if (== $expression ())
@@ -101,7 +97,7 @@
 		       	((demand $maxName $maxVal) $maxDemand)
 		       	(((demand $currName $currVal) $tail) (decons-atom $demands))
 		       )
-		  	(if (>= $currVal $maxVal)
+		  	(if (<= $currVal $maxVal)
 			  	(demandSelector' $tail (demand $currName $currVal))
 				(demandSelector' $tail $maxDemand)
 			)
@@ -241,25 +237,38 @@
 	)
 )
 
-
-
-
-;; This function implements the kb-initializer for the open-psi loop to work
-(: kb-initializer (-> Grounded Expression))
-(= (kb-initializer $kb)
-   (let* (
-	  	 ($rules (collapse (get-atoms &ruleSpace)))
-		($modulators (collapse (get-atoms &modulator-space)))
-		($demands (collapse (get-atoms &demandspace)))
-		($partialKb (union-atom $rules $modulators))
-		($kbExp (union-atom $partialKb $demands))
-		($_ (collapse (add-atoms $kb $kbExp)))
-	)
-     		()
-    
-	)
+(= (get-goal-value (Goal $goal_name $goal_value $target_goal_value))
+    $goal_value
+)
+(= (find-best-goal' $related_goals $max_value $best_goal)
+    (if (== $related_goals ()) $best_goal 
+        (let* (
+            ($current-goal (car-atom $related_goals))
+            ($next_goals (cdr-atom $related_goals))
+            ($current_goal_value (get-goal-value $current-goal))
+            ; (() println! (current-goal-value = $current_goal_value))
+            ; (() (println! (currentgoal= $current-goal , current-goal-value= $current_goal_value , next-goals= $next_goals)))
+        )
+            (if (> $current_goal_value $max_value)
+                (find-best-goal' $next_goals $current_goal_value $current-goal)
+                (find-best-goal' $next_goals $max_value $best_goal)
+            )
+        )
+    )
 )
 
+(= (find-best-goal $goals)
+    (find-best-goal' $goals 0 ())
+)
+(= (goal-selector $space $demand)
+    (let* (
+        ($relatedGoals (collapse (get-type-space $space $demand)))
+         (() (println! (related-goals= $relatedGoals)))
+        ($selectedGoal (find-best-goal $relatedGoals))
+    )
+    $selectedGoal
+)
+)
 
 (: psi-agent-loop (-> Symbol Grounded Expression)) 
 (= (psi-agent-loop $state $kb)
@@ -268,10 +277,10 @@
         ($_ (println! (demands $demands)))
 		($currDemand (demandSelector $demands))
         ($_ (println! (dmSelector $currDemand)))
-        ($goalObj (goalSelector $currDemand))
+        ($goalObj (goal-selector $kb $currDemand))
 		((Goal $goal $goalVal1 $goalVal2) $goalObj) 
         ($_ (println! (goal-psi $goal)))
-		($actions (planner &ruleSpace $state $goal))
+		($actions (planner $kb $state $goal))
         ($_ (println! (actions-psi-to-apply $actions goal $goal demand $currDemand)))
 		($applyValue (applyActions $actions $goalObj $currDemand)) 
         ($_ (println! (applyValue $applyValue)))
