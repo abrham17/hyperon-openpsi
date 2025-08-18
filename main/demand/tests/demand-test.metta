@@ -10,7 +10,6 @@
 !(addDemand &demandSpace affiliation 0.5)
 !(addDemand &demandSpace competence 0.2)
 !(skipDemand &demandSpace competence)
-;;!(get-atoms &demandSpace)
 
 !(assertEqual (getDemandByName &demandSpace energy) (demand energy 0.6))
 !(assertEqual (exists-In &demandSpace (demand energy 0.6)) True)
@@ -24,4 +23,4 @@
 
 !(assertEqual (fetch-demand &demandSpace energy)  (demand energy 0.8))
 !(assertEqual (fetch-demand-val &demandSpace energy) 0.8)
-!(assertEqual (getEnabledDemands &demandSpace) ((demand affiliation 0.5) (demand energy 0.8)))
+!(assertEqual (getEnabledDemands &demandSpace) ((demand energy 0.8) (demand affiliation 0.5) ))
