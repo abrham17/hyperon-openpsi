@@ -34,21 +34,3 @@
 ; !(assertEqual (existsIn &demandSpace (demand energy 0.8)) True)
 ; ; !(getAllDemands &demandSpace)
 ; !(get-atoms &demandSpace)
-
-; Added tests for the new decay functions
-!(bind! &testDecaySpace (new-space))
-!(addDemand &testDecaySpace energy 0.8)
-!(addDemand &testDecaySpace affiliation 0.6)
-!(addDemand &testDecaySpace competence 0.4)
-!(skipDemand &testDecaySpace competence)
-
-; Test decay of skipped demands only
-!(DecaySkippedDemands &testDecaySpace 0.1)
-; competence should now be 0.3, others unchanged
-
-; Test decay of all demands
-!(DecayAllDemands &testDecaySpace 0.05)
-; All demands should be reduced by 0.05
-
-; Test different decay rates
-!(DecayDemandsWithDifferentRates &testDecaySpace 0.02 0.08)
