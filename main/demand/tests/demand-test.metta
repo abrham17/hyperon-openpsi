@@ -2,53 +2,35 @@
 !(register-module! ../../../utilities-module)
 !(import! &self utilities-module:utils)
 !(import! &self hyperon-openpsi:psi-utilities:psi_utils)
-!(import! &self hyperon-openpsi:main:demand)
+!(import! &self hyperon-openpsi:main:demand:demand)
 
 !(bind! &demandSpace (new-space))
 
-
-;TODO: move these to utilities-module
-(= (existsIn $space $atom)
-  (case (get-metatype $atom)
-  (
-    (Expression (let $matchedAtoms (collapse (match $space $atom $atom)) (
-      if (== $matchedAtoms ()) False True
-    )
-    ))
-    (Symbol  ( let $res (collapse (get-type-space $space $atom)) (not (== (%Undefined%) $res)) ))
-  )
-  )
-)
 !(addDemand &demandSpace energy 0.6)
 !(addDemand &demandSpace affiliation 0.5)
 !(addDemand &demandSpace competence 0.2)
 !(skipDemand &demandSpace competence)
 
-; !(assertEqual (existsIn &demandSpace (demand energy 1.4)) False)
-; !(assertEqual (existsIn &demandSpace (demand competence 0.2)) True)
-; !(assertEqual (getAllDemands &demandSpace )  ((demand energy 0.6) (demand affiliation 0.5) (demand competence 0.2)))
-; !(assertEqual (existsIn &demandSpace (skip competence)) True)
+!(assertEqual (getDemandByName &demandSpace energy) (demand energy 0.6))
+;!(assertEqual (exists-In &demandSpace (demand energy 0.6)) True)
+;!(assertEqual (exists-In &demandSpace (demand competence 0.2)) True)
+!(assertEqual (getAllDemands &demandSpace )  ((demand energy 0.6) (demand affiliation 0.5) (demand competence 0.2)))
+;!(assertEqual (exists-In &demandSpace (skip competence)) True)
 
-; !(assertEqual (getEnabledDemands &demandSpace) ((demand affiliation 0.5) (demand energy 0.6)))
-; !(setDemandValue &demandSpace energy 0.8)
-; !(assertEqual (existsIn &demandSpace (demand energy 0.8)) True)
-; ; !(getAllDemands &demandSpace)
-; !(get-atoms &demandSpace)
+!(setDemandValue &demandSpace energy 0.8)
+;!(assertEqual (exists-In &demandSpace (demand energy 0.6)) False)
+;!(assertEqual (exists-In &demandSpace (demand energy 0.8)) True)
 
-; Added tests for the new decay functions
-!(bind! &testDecaySpace (new-space))
-!(addDemand &testDecaySpace energy 0.8)
-!(addDemand &testDecaySpace affiliation 0.6)
-!(addDemand &testDecaySpace competence 0.4)
-!(skipDemand &testDecaySpace competence)
+!(assertEqual (fetch-demand &demandSpace energy)  (demand energy 0.8))
+!(assertEqual (fetch-demand-val &demandSpace energy) 0.8)
+!(assertEqual (getEnabledDemands &demandSpace) ((demand energy 0.8) (demand affiliation 0.5) ))
 
-; Test decay of skipped demands only
-!(DecaySkippedDemands &testDecaySpace 0.1)
-; competence should now be 0.3, others unchanged
-
-; Test decay of all demands
-!(DecayAllDemands &testDecaySpace 0.05)
-; All demands should be reduced by 0.05
-
-; Test different decay rates
-!(DecayDemandsWithDifferentRates &testDecaySpace 0.02 0.08)
+!(bind! &decayspace (new-space))
+!(addDemand &decayspace energy 0.6)
+!(addDemand &decayspace affiliation 0.5)
+!(addDemand &decayspace competence 0.4)
+!(skipDemand &decayspace competence)
+!(getEnabledDemands &decayspace)
+!(DecaySkippedDemands &decayspace 0.1)
+!(DecayAllDemands &decayspace 0.05)
+!(get-atoms &decayspace)

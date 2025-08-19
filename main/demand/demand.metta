@@ -15,13 +15,20 @@
     )
     )
 
-!(addDemand &demandspace energy 0.2)
+(= (fetch-demand $space $name)
+    (match $space (demand $name $x) (demand $name $x))
+)
+
+(= (fetch-demand-val $space $name)
+    (let ($x $y $z) (fetch-demand $space $name) $z)
+)
 
 (= (getAllDemands $space)
     (collapse (match $space (demand $x $_) (demand $x $_)))
 )
-!(getAllDemands &self)
-(= (skipDemand $space $demand ) 
+
+
+(= (skipDemand $space $demand) 
     (let* (
         ($skip (collapse (match $space (skip $demand) (skip $demand))))
         ( $isNotFound (== $skip ()))
@@ -32,11 +39,6 @@
     )
     )
 )
-
-!(skipDemand &self energy)
-; !(add-reduct &demandspace (superpose (
-;         (skip competence 0.5)
-; )))
 
 (= (getEnabledDemands $space)
     (let* (
@@ -61,21 +63,24 @@
     )
 
 )
+(= (getDemandByName $space $name) (match $space (demand $name $x) (demand $name $x)))
 
 ; Fixed DemandDecay function to properly take space parameter
 (= (DemandDecay $space $demand $value)
     (let* (
-        ($oldValue (collapse (match $space (demand $demand $oldValue) $oldValue)))
+        ($oldValue  (match $space (demand $demand $oldValue) $oldValue))
         ($newValue (- $oldValue $value))
     )
     (if (>= $newValue 0)
         (setDemandValue $space $demand $newValue)
-        (let (($demandAtom (collapse (match $space (demand $demand $oldValue) (demand $demand $oldValue)))))
+        (let $demandAtom (match $space (demand $demand $oldValue) (demand $demand $oldValue))
+        (do
             (remove-atom $space $demandAtom)
+            (remove-atom $space (skip $demand))
         )
     )
     )
-)
+))
 
 ; New function to apply decay only to skipped demands
 (= (DecaySkippedDemands $space $decayValue)
@@ -85,10 +90,9 @@
     )
     (if (== (size-atom $skippedDemands) 0 )
         (There is no skipped demand) 
-        (superpose (DemandDecay $space (superpose $skippedDemandNames) $decayValue))
+        (DemandDecay $space (superpose $skippedDemandNames) $decayValue)
     ))
 )
-!(DecaySkippedDemands &self 0.1)
 ; New function to apply decay to all demands (both enabled and skipped)
 (= (DecayAllDemands $space $decayValue)
     (let* (
@@ -97,31 +101,31 @@
     )
     (if (== (size-atom $allDemands) 0 )
         (No demands in the space)
-        (superpose (DemandDecay $space (superpose $demandNames) $decayValue))
+        (DemandDecay $space (superpose $demandNames) $decayValue)
     ))
 )
 
 ; New function to apply different decay rates to enabled vs skipped demands
 (= (DecayDemandsWithDifferentRates $space $enabledDecayRate $skippedDecayRate)
     (let* (
-        ($enabledDemandNames (collapse (match $space (demand $x $_) 
-            (if (== (collapse (match $space (skip $x) (skip $x))) ()) $x ()))))
+        ($enabledDemandNames (getEnabledDemands $space))
+        ($enabledDemands (collapse (unify $enabledDemandNames (demand $x $_) $x ())))
         ($skippedDemandNames (collapse (match $space (skip $x) $x)))
-        ($_ (superpose (DemandDecay $space (superpose $enabledDemandNames) $enabledDecayRate)))
-        ($_ (superpose (DemandDecay $space (superpose $skippedDemandNames) $skippedDecayRate)))
+        ($_ (DecaySkippedDemands $space $skippedDecayRate))
     )
-    (
-        ()
+    (if (== (size-atom $enabledDemands) 0)
+        (There is no skipped demand)
+        (DemandDecay $space (superpose $enabledDemands) $enabledDecayRate)
+        
     ))
 )
-
-!(skipDemand energy)
-!(skipDemand affiliation)
-
-!(setDemandValue energy 0.6)
-
-
-!(getEnabledDemands)
-
+!(addDemand &demandspace energy 0.6)
+!(addDemand &demandspace affiliation 0.5)
+!(addDemand &demandspace competence 0.4)
+!(skipDemand &demandspace competence)
+!(getEnabledDemands &demandspace)
+!(DecaySkippedDemands &demandspace 0.1)
+!(DecayAllDemands &demandspace 0.05)
+!(DecayDemandsWithDifferentRates &demandspace 0.05 0.5)
 
 !(get-atoms &demandspace)
