@@ -69,6 +69,9 @@
     )
 
 )
+
+
+
 ;;gets weights from rule
 (= (getWeightFromRule $rule)
     (let ($schema $weight) $rule $weight)
@@ -233,6 +236,8 @@
 
     )
 )
+
+
 
 
 
