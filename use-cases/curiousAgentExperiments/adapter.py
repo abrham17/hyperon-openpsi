@@ -1,16 +1,17 @@
 from typing import List
 from base import *
 import re
+import os
 import json
 from pydantic import ValidationError
-
+from typing import List, Optional
+import google.generativeai as genai
+from dotenv import load_dotenv
 
 
 def parse_schema(schema: Schema) -> str:
     """A function that parses a cognitive Schema into represented in Python to MeTTa structure."""
-    # Assuming context, action, and goal are already in the correct Metta format
-    # Format weight as an integer to match the expected output
-    return f"""((: {schema.handle} ({schema.tv} (IMPLICATION_LINK (AND_LINK ({schema.context} {schema.action})) {schema.goal}))) {schema.weight})"""
+    return f"""(: {schema.handle} (IMPLICATION_LINK (AND_LINK ({schema.context}) {schema.action}) {schema.goal})) {schema.tv})"""
 
 
 def parse_action(actions: str) -> List[Action]:
@@ -20,37 +21,6 @@ def parse_action(actions: str) -> List[Action]:
     action_tuple = (Action(action_name=action) for action in actions_list)
     return action_tuple
 
-
-def parse_exp(sexpr: str) -> List[Schema]:
-    pattern = re.compile(r"""
-        \(                       # opening of the outermost tuple
-          \( :\s*(r\d+)\s*       # handle (e.g. r1)
-          \(                     # opening of the rule body
-            \( TTV\s*\d+\s*\( STV\s*([\d.]+)\s+([\d.]+)\) \)\s*    # STV values
-            \( IMPLICATION_LINK\s*
-              \( AND_LINK\s*
-                \( \( Goal\s+([a-zA-Z0-9_]+)\s+[\d.]+\s+[\d.]+ \)\s+([a-zA-Z0-9_]+) \)\s*  # context + action
-              \)\s*
-              \( Goal\s+([a-zA-Z0-9_]+)\s+[\d.]+\s+[\d.]+ \)       # goal
-            \)
-          \)\s*
-        (\d+(?:\.\d+)?)              # weight
-        \)
-    """, re.VERBOSE)
-
-    result = []
-    for match in pattern.finditer(sexpr):
-        handle, stv1, stv2, context, action, goal, weight = match.groups()
-        result.append(Schema(
-            handle=handle,
-            context=context,
-            action=action,
-            goal=goal,
-            weight=float(weight),
-            tv=f"(STV {stv1} {stv2})"
-        ))
-
-    return result
 
 
 def parse_state_params(state_params: str) -> StateParams:
@@ -81,21 +51,15 @@ def parse_state_params(state_params: str) -> StateParams:
 
 
 def validateSyntax(rule: str) -> bool:
-    # The pattern is designed to match a specific MeTTa rule structure.
-    # It uses \s* to allow for zero or more whitespace characters, making the validation flexible with spacing.
-    pattern = r"""
-    \(\(:\s*                                    # Start of the outer expression with a colon
-    (\w+)\s*                                    # Capture the rule handle (e.g., r1)
-    \(\(TTV\s*\d\s*                             # Start of TTV with a single digit
-    \(STV\s*\d\.\d\s+\d\.\d\s*\)\)\s*             # STV with two single-digit decimal numbers
-    \(IMPLICATION_LINK\s*                       # IMPLICATION_LINK keyword
-    \(\s*AND_LINK\s*                            # AND_LINK keyword
-    \(\(\s*Goal\s+\w+\s+\d\.\d\s+\d\.\d\s*\)\s*    # Goal expression with a name and two single-digit decimal numbers
-    \w+\s*\)\)\s*                               # Action keyword
-    \(\s*Goal\s+\w+\s+\d\.\d\s+\d\.\d\s*\)       # Goal expression again
-    \)\)\)\s*                                   # Closing parentheses for the structure
-    ([0-1](\.\d)?|2(\.0)?)\s*\)                  # Final weight number (0-2) with one decimal place and closing parenthesis
-    """
+    pattern = r"""\(:\s+(\w+)\s+                             # (: R15
+                \(IMPLICATION_LINK\s+                        # (IMPLICATION_LINK
+                    \(AND_LINK\s+                            # (AND_LINK
+                        \(\(\s*(\w+(?:-\w+)*)\s*\)\)\s+      # ((Human-Provides-Ambiguous-Answer))
+                        \(\w+(?:-\w+)*\)\)                   # (Seek-Clarification)
+                    \s+\(\w+(?:-\w+)*\)\s*\)                 # (Resolve-Ambiguity)
+                \s+\(TTV\s+(\d+)\s+                          # (TTV 114
+                    \(STV\s+([\d.]+)\s+([\d.]+)\)\)\)$       # (STV 0.9 0.8)))
+            """
     return bool(re.match(pattern, rule, re.VERBOSE))
 
 
@@ -132,3 +96,56 @@ def extract_rules_from_llm(raw_rules: str) -> List[Schema]:
 
 
 # print(parse_schema(Schema(handle="test_schema", context="(Self Is Outside) (Self Has Key) (Self See Door)", action="(Go to Door)", goal="(Self at Door)", tv="(TTV 1 (STV 0.5 0.1))")))
+
+
+# ========== Correlation Matcher ==========
+def match_rule(conversation_summary: str, rule_base: List[str]) -> Optional[str]:
+    prompt = (
+        f"You are a rule selection engine.\n\n"
+        f"Given the following conversation summary:\n"
+        f"{conversation_summary}\n\n"
+        f"And this list of rules:\n"
+        f"{rule_base}\n\n"
+        f"Compare the summary to all rules. Select only the top 4 most relevant rules "
+        f"that closely match the conversation context. Return them in descending order "
+        f"of relevance — from most relevant to least relevant.\n\n"
+        f"Output Format Requirement:\n"
+        f"- Return only the full rule texts (no headings, no extra words, no explanations).\n"
+        f"- Do NOT include any unrelated rules or commentary.\n"
+        f"- Return exactly 4 rules or fewer if fewer match — clean output."
+    )
+    return run_gemini(prompt)
+
+
+## ========== Gemini Setup ==========
+
+# = Load ENV =======
+load_dotenv()
+GEMINI_API_KEY = os.getenv("API_KEY")
+
+# = Setup Gemini =====
+genai.configure(api_key=GEMINI_API_KEY)
+
+
+def run_gemini(prompt: str, system_instruction: Optional[str] = None) -> str:
+    try:
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        generation_config = genai.types.GenerationConfig(
+            temperature=0.5,
+            top_p=1,
+            top_k=1,
+            max_output_tokens=1024,
+        )
+        if system_instruction:
+            response = model.generate_content(
+                prompt,
+                generation_config=generation_config,
+                system_instruction=system_instruction,
+            )
+        else:
+            response = model.generate_content(
+                prompt, generation_config=generation_config
+            )
+        return response.text.strip()
+    except Exception as e:
+        return f"[Gemini Error] {str(e)}"

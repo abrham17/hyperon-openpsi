@@ -65,7 +65,6 @@
 )
 (= (getDemandByName $space $name) (match $space (demand $name $x) (demand $name $x)))
 
-; Fixed demandDecay function to properly take space parameter
 (= (demandDecay $space $demand $value)
     (let* (
         ($oldValue  (match $space (demand $demand $oldValue) $oldValue))
