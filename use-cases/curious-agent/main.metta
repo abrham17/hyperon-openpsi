@@ -28,12 +28,6 @@
 	)
 )
 
-!(addDemandGoalRels &kb)
-!(populateRuleSpace &ruleSpace)
-!(populateDemandSpace &demandspace)
-!(insert-modulators &modulator-space)
-!(kb-initializer &kb)
-
 (= (loop $emotionVals) 
    (let* (
         ($userInput (pyModule getUserInput ()))
@@ -61,5 +55,11 @@
         $summary
      )
    )
+
+!(addDemandGoalRels &kb)
+!(populateRuleSpace &ruleSpace)
+!(populateDemandSpace &demandspace)
+!(insert-modulators &modulator-space)
+!(kb-initializer &kb)
 
 !(loop (happinessValue 0.5 sadnessValue 0.039 angerValue 0.9 fearValue 0.04 gratitudeValue 0.6))
