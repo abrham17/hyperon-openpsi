@@ -25,7 +25,7 @@
             (($head $tail) (decons-atom $expression))
             ($_  (remove-atom $space $head))
            ($rem (collapse (get-atoms $space)))
-           ($_ (println! (remaining-atoms $rem)))
+           ;($_ (println! (remaining-atoms $rem)))
         )
             (remove-atoms' $space $tail)
         )
@@ -45,7 +45,7 @@
 (= (remove-occurrences $space $pattern)
    	(let* (
             ($atoms (collapse (match $space $pattern $pattern)))
-            ($_ (println! (atoms-to-remove $atoms)))
+            ;($_ (println! (atoms-to-remove $atoms)))
            ) 
 	  	(remove-atoms' $space $atoms)))
 
@@ -217,7 +217,7 @@
 		False
 		(let* (
 			(($rule $tail) (decons-atom $rules))
-            ($_ (println! (isGoalMetInnerRule $rule tail $tail)))
+            ;($_ (println! (isGoalMetInnerRule $rule tail $tail)))
 			($ruleGoal (extractGoalFromRule $rule))
             ($_ (println! (this is the goal $ruleGoal)))
 		)

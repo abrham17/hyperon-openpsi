@@ -1,5 +1,3 @@
-!(bind! &modulator-space (new-space))
-!(bind! &demandspace (new-space))
 !(register-module! ../../../../../hyperon-openpsi)
 !(import! &self hyperon-openpsi:main:modulator:modulator)
 !(import! &self hyperon-openpsi:main:mind-agents:modulator-updater:modulator-updaters)

@@ -12,7 +12,7 @@
             (($head $tail) (decons-atom $expression))
             ($_  (remove-atom $space $head))
            ($rem (collapse (get-atoms $space)))
-           ($_ (println! (remaining-atoms $rem)))
+           ;($_ (println! (remaining-atoms $rem)))
         )
             (remove-atoms' $space $tail)
         )
@@ -32,7 +32,7 @@
 (= (remove-occurrences $space $pattern)
    	(let* (
             ($atoms (collapse (match $space $pattern $pattern)))
-            ($_ (println! (atoms-to-remove $atoms)))
+            ;($_ (println! (atoms-to-remove $atoms)))
            ) 
 	  	(remove-atoms' $space $atoms)))
 
@@ -214,9 +214,9 @@
 		False
 		(let* (
 			(($rule $tail) (decons-atom $rules))
-            ($_ (println! (isGoalMetInnerRule $rule tail $tail)))
+            ;($_ (println! (isGoalMetInnerRule $rule tail $tail)))
 			($ruleGoal (extractGoalFromRule $rule))
-            ($_ (println! (this is the goal $ruleGoal)))
+            ;($_ (println! (this is the goal $ruleGoal)))
 		)
 		  (if (== $ruleGoal $goal)
 		    	True
@@ -280,7 +280,7 @@
 (= (goal-selector $space $demand)
     (let* (
         ($relatedGoals (collapse (get-type-space $space $demand)))
-         (() (println! (related-goals= $relatedGoals)))
+         ;(() (println! (related-goals= $relatedGoals)))
         ($selectedGoal (find-best-goal $relatedGoals))
     )
     $selectedGoal
@@ -291,27 +291,27 @@
 (= (psi-agent-loop $state $kb)
 	(let* (
 	    ($demands (queryAll $kb demand))
-        ($_ (println! (demands $demands)))
+        ;($_ (println! (demands $demands)))
 		($currDemand (demandSelector $demands))
-        ($_ (println! (dmSelector $currDemand)))
+        ;($_ (println! (dmSelector $currDemand)))
         ($goalObj (goal-selector $kb $currDemand))
 		((Goal $goal $goalVal1 $goalVal2) $goalObj) 
-        ($_ (println! (goal-psi $goal)))
+        ;($_ (println! (goal-psi $goal)))
 		($actions (planner $kb $state $goal))
-        ($_ (println! (actions-psi-to-apply $actions goal $goal demand $currDemand)))
+        ;($_ (println! (actions-psi-to-apply $actions goal $goal demand $currDemand)))
 		($applyValue (applyActions $actions $goalObj $currDemand)) 
-        ($_ (println! (applyValue $applyValue)))
+        ;($_ (println! (applyValue $applyValue)))
 		($competenceDemand (getDemandByName &demandspace competence)) 
-        ($_ (println! (competence-psi $competenceDemand)))
+        ;($_ (println! (competence-psi $competenceDemand)))
 		($affiliationDemand (getDemandByName &demandspace affiliation))
 		($energyDemand (getDemandByName &demandspace energy))
     
-        ($_ (println! (demandValues $competenceDemand $affiliationDemand $energyDemand)))
+        ;($_ (println! (demandValues $competenceDemand $affiliationDemand $energyDemand)))
 		($modUpdate (modulatorUpdaterAgent &modulator-space $competenceDemand $affiliationDemand $energyDemand))
 
-        ($_ (println! (modUpdate $modUpdate modulatorValues (collapse (get-atoms &modulator-space))))) 
+        ;($_ (println! (modUpdate $modUpdate modulatorValues (collapse (get-atoms &modulator-space))))) 
 		($happinessValue (happinessFeelingUpdater &modulator-space))
-        ($_ (println! (happinessVal $happinessValue)))
+        ;($_ (println! (happinessVal $happinessValue)))
 		($sadnessValue (sadnessFeelingUpdater &modulator-space))
         ;; ($_ (println! (sadnessVal $sadnessValue)))
 		($angerValue (angerFeelingUpdater &modulator-space))

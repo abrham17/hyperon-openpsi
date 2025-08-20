@@ -194,12 +194,25 @@ def summarize_conversation(state: AgentState) -> AgentState:
     else:
         summary_message = "Create a summary of the conversation above:"
 
-    messages = state["messages"] + [SystemMessage(content=summary_message)]
+    messages = state["messages"] + [
+        HumanMessage(
+            content=summary_message, additional_kwargs={"type": "summary_request"}
+        )
+    ]
 
     response = summarization_model.invoke(messages)
-    # print("CONTEXT: ", response.content)
-    # delete_messages = [RemoveMessage(id=message.id) for message in messages[:-2]]
-    return {"summary": response.content, "messages": messages}
+    delete_messages = [RemoveMessage(id=message.id) for message in messages[:-2]]
+    return {"summary": response.content, "messages": delete_messages}
+
+
+def get_latest_user_message(state: AgentState):
+    for message in reversed(state["messages"]):
+        if (
+            isinstance(message, HumanMessage)
+            and message.additional_kwargs.get("type") != "summary_request"
+        ):
+            return message.content
+    return None
 
 
 graph = StateGraph(AgentState)
@@ -219,14 +232,13 @@ graph.add_edge("summarize_conversation", END)
 checkpointer = InMemorySaver()
 agent = graph.compile(checkpointer=checkpointer)
 config = {"configurable": {"thread_id": "1"}}
-# result = agent.invoke({"messages": [HumanMessage(content="Hi")], "summary": ""})
-# print(result["messages"][-1].content)
 
 
 def getUserInput():
     user_input = input("You: ")
-    if user_input.lower() == "exit":
+    if user_input.strip().lower() == "exit":
         print("Gemini Chatbot: Goodbye!")
+        return
     return user_input
 
 
@@ -245,20 +257,11 @@ def generateResponse(user_input: str, emotion_vals: str):
     )
     print("Gemini Chatbot: ", end="")
     print(response["messages"][-1].content)
-    messages = response["messages"]
-    output = []
-    for message in messages:
-        if isinstance(message, HumanMessage):
-            output.append(message)
 
-    # for chunk in response:
-    #     print(chunk.text, end="", flush=True)
-
-    return {"summary": response.get("summary", ""), "messages": output}
+    return response
 
 
 def pyModule(metta: MeTTa, name: Atom, *args: Atom):
-    # print("Args : ", args)
     payload_expression: ExpressionAtom = args[0]
     actual_arg_atoms = payload_expression.get_children()
     functionName = name.get_name()
@@ -271,7 +274,6 @@ def pyModule(metta: MeTTa, name: Atom, *args: Atom):
 
 
 def pyModuleX(metta: MeTTa, name: Atom, *args: Atom):
-    # print("Args : ", args)
     payload_expression: ExpressionAtom = args[0]
     actual_arg_atoms = payload_expression.get_children()
     functionName = name.get_name()
@@ -423,17 +425,9 @@ def correlation_matcher(conversation_summary: str, rules: str, userResponse: str
         rules_list=rules,
         userResponse=userResponse,
     )
-    # print(type(raw_rules_string))
-    # rules_list = rules_to_lists(raw_rules_string)
     rules_list = [parse_schema(schema) for schema in correlated_schema_list]
 
     for rule_string in rules_list:
-        print(f"""validating syntax: {validateSyntax(rule_string)}
-
-for the rule : {rule_string}
-
-              """)
-
         if validateSyntax(rule_string):
             # if rule_string in rule_list: TODO: enforce this later with the existence validator.
             return rule_string

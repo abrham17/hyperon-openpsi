@@ -209,7 +209,7 @@
 		False
 		(let* (
 			(($rule $tail) (decons-atom $rules))
-            ($_ (println! (isGoalMetInnerRule $rule tail $tail)))
+            ;($_ (println! (isGoalMetInnerRule $rule tail $tail)))
 			($ruleGoal (extractGoalFromRuleV2 $rule))
 			((Goal $g $tv $sgv) $goal)
             ($_ (println! (this is the goal $ruleGoal = $g)))

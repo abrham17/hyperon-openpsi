@@ -226,20 +226,12 @@
    (let* (
         ($userInput (pyModule getUserInput ()))
         ($response (pyModule generateResponse ($userInput $emotionVals)))
-        (($content $summary) (extractTuple $response))
-        ;(() (println! $content))
-        ;(() (println! (content summary $content $userInput)))
+        ($summary (extractSummary $response))
         ($rules (collapse (get-atoms &ruleSpace)))
-        ($rule (pyModuleX correlation_matcher ($summary $rules $content)))
-        ;($_ (println! (selected Rule --> (get-metatype $rule) $rule)))
-        (((: $handle ($tv (IMPLICATION_LINK (AND_LINK ((Goal $context $x_0 $y_0) $action)) $goal))) $wght) $rule )
-        ;(() (println! (selected Context --> (get-metatype $context) $context)))
+        ($rule (pyModuleX correlation_matcher ($summary $rules $userInput)))
+        (((: $handle ($tv (IMPLICATION_LINK (AND_LINK ((Goal $context $x $y) $action)) $goal))) $wght) $rule)
         ($emotion (psi-agent-loop $context &kb))
-        (() (println! (selected Emotion --> $emotion)))
-        ($demands (get-atoms &demandspace))
-        (() (println! (new demands $demands)))
-        ($mods (get-atoms &modulator-space))
-        (() (println! (new modulators $mods)))
+        (() (println! $emotion))
       )
       (
         if(== $userInput "exit")
@@ -249,16 +241,13 @@
     )
    )
 
-(= (extractTuple $response) 
+(= (extractSummary $response) 
    (let* (
           ($messages ((py-dot $response get) "messages" ""))
-          ($last_message ((py-dot $messages __getitem__) -1))
-          ($content (py-dot $last_message content))
           ($summary ((py-dot $response get) "summary" ""))
         )
-        ($content $summary)
+        $summary
      )
    )
 
-!(loop (happinessValue 0.5833333333333334 sadnessValue 0.03965158772425329 angerValue 0.9 fearValue 0.044551142286994694 gratitudeValue 0.66666666666
-66667))
+!(loop (happinessValue 0.5 sadnessValue 0.039 angerValue 0.9 fearValue 0.04 gratitudeValue 0.6))
