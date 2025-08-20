@@ -7,7 +7,7 @@
 !(import! &self hyperon-openpsi:main:mind-agents:modulator-updater:modulator-updaters)
 !(import! &self hyperon-openpsi:main:mind-agents:action-planner:action-planner-v1)
 !(import! &self hyperon-openpsi:psi-utilities:psi_utils)
-!(import! &self hyperon-openpsi:use-cases:curious-agent:setup-env)
+!(import! &self hyperon-openpsi:use-cases:curious-agent:setup-kb)
 
 !(register-module! ../../utilities-module)
 !(import! &self utilities-module:utils)
