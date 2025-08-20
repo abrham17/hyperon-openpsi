@@ -31,6 +31,6 @@
 !(addDemand &decayspace competence 0.4)
 !(skipDemand &decayspace competence)
 !(getEnabledDemands &decayspace)
-!(DecaySkippedDemands &decayspace 0.1)
-!(DecayAllDemands &decayspace 0.05)
+!(decaySkippedDemands &decayspace 0.1)
+!(decayAllDemands &decayspace 0.05)
 !(get-atoms &decayspace)
