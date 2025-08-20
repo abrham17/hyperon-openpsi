@@ -6,13 +6,14 @@
 !(import! &self utilities-module:utils)
 !(import! &self hyperon-openpsi:psi-utilities:psi_utils)
 !(import! &self hyperon-openpsi:main:demand:demand)
-;; !(import! &self hyperon-openpsi:main:feed-back-loop:feed-back-loop)
+ !(import! &self hyperon-openpsi:main:feed-back-loop:feed-back-loop)
 ;; !(import! &self hyperon-openpsi:main:feed-back-loop:feed-back-helpers)
 !(import! &self hyperon-openpsi:main:mind-agents:action-planner:action-planner-v1)
 !(import! &self hyperon-openpsi:main:mind-agents:feeling-updater:feeling-updaters)
-!(import! &self hyperon-openpsi:use-cases:curious-agent:demand-goal-link)
-!(bind! &kb (new-space))
-!(populate-link-space &ruleSpace) 
+!(import! &self hyperon-openpsi:use-cases:curious-agent:setup-kb)
+
+
+!(addDemandGoalRels &kb) 
 !(insert-modulators &modulator-space)
 
 
@@ -204,7 +205,7 @@
 			(selectMaxRule $tail $rule)
 
 		)
-	  	
+
 	)))
 
 
@@ -272,7 +273,7 @@
 		($_ (collapse (add-atoms $kb $kbExp)))
 	)
      		()
-    
+
 	)
 )
 
@@ -295,7 +296,7 @@
         ($_ (println! (competence-psi $competenceDemand)))
 		($affiliationDemand (getDemandByName &demandspace affiliation))
 		($energyDemand (getDemandByName &demandspace energy))
-    
+
         ($_ (println! (demandValues $competenceDemand $affiliationDemand $energyDemand)))
 		($modUpdate (modulatorUpdaterAgent &modulator-space $competenceDemand $affiliationDemand $energyDemand))
 
@@ -347,3 +348,21 @@
 ;; !(happinessFeelingUpdater &modulator-space)
 
 ;; !(get-atoms &modulator-space)
+
+!(assertEqual (get-goal-value (Goal Confirm-Insight-Accuracy 0.9 0.6)) 0.9 )
+!(assertEqual (find-best-goal' 
+  ((Goal Confirm-Insight-Accuracy 0.5 0.6) 
+   (Goal confirm-goal-accuracy 0.01 0.6) 
+   (Goal refine-topic-understanding 0.1 0.6)) 
+  -1 
+  ()
+) (Goal Confirm-Insight-Accuracy 0.5 0.6))
+
+!(assertEqual (find-best-goal 
+  ((Goal Confirm-Insight-Accuracy 0.5 0.6) 
+   (Goal confirm-goal-accuracy 0.01 0.6) 
+   (Goal refine-topic-understanding 0.91 0.6)) 
+ 
+) (Goal refine-topic-understanding 0.91 0.6) )
+
+!(assertEqual (goal-selector &kb (demand integrity 1.0)) (Goal Summarize-User-Preferences 1 1) )
