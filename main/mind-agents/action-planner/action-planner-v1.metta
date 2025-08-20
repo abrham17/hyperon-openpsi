@@ -69,6 +69,9 @@
     )
 
 )
+
+
+
 ;;gets weights from rule
 (= (getWeightFromRule $rule)
     (let ($schema $weight) $rule $weight)
@@ -186,7 +189,7 @@
 ;; an action at each step.
 (= (planner' $ruleSpace $initState $goal $target $accum)
     (if (== $initState $goal)
-        $accum
+        (union-atom $accum ($goal))
         (let* (
             ($relatedRules (findRulesWithContext $ruleSpace $initState))
             ($_ (println! (relatedRules $relatedRules)))
@@ -214,6 +217,10 @@
         )        
     )
 )
+
+;; The main planner function that starts the planning process.
+;; It initializes the planning by finding rules related to the goal
+;; and then calls the recursive planner function.
 (= (planner $ruleSpace $initState $goal)
     (let* (
         
@@ -225,10 +232,13 @@
         ($_ (println! (targetRules $targetRules target $target)))
         
     )
-        (planner' $ruleSpace $initState $goal $target ())
+        (planner' $ruleSpace $initState $goal $target ($initState))
 
     )
 )
+
+
+
 
 
  
