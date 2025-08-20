@@ -1,3 +1,9 @@
+
+!(bind! &kb (new-space))
+
+!(bind! &modulator-space (new-space))
+!(bind! &demandspace (new-space))
+
 (: remove-atoms' (-> Grounded Expression Expression))
 (= (remove-atoms' $space $expression)
     (if (== $expression ())
@@ -188,6 +194,17 @@
 	)))
 
 
+(: isGoalMet? (-> Expression Goal Bool))
+(= (isGoalMet? $actions $goal)
+	(let* (
+	       ($length (size-atom $actions))
+	       ($lastAction (index-atom $actions (- $length 1)))
+	       ($rules' (findRulesWithAction &kb $lastAction))
+           ;($_ (println! (rulesinGoal $rules')))
+	)
+		 (isGoalMet' $rules' $goal)
+	)	
+)
 
 
 

@@ -21,6 +21,7 @@ from typing import Annotated, TypedDict
 
 from langgraph.graph import add_messages, MessagesState, StateGraph
 from langchain_core.messages import (
+    AIMessage,
     HumanMessage,
     RemoveMessage,
     SystemMessage,
@@ -174,7 +175,7 @@ def should_continue(state):
 
     messages = state["messages"]
 
-    if len(messages) > 6:
+    if len(messages) > 4:
         return "summarize_conversation"
 
     return END
@@ -193,12 +194,12 @@ def summarize_conversation(state: AgentState) -> AgentState:
     else:
         summary_message = "Create a summary of the conversation above:"
 
-    messages = state["messages"] + [HumanMessage(content=summary_message)]
+    messages = state["messages"] + [SystemMessage(content=summary_message)]
 
     response = summarization_model.invoke(messages)
     # print("CONTEXT: ", response.content)
-    delete_messages = [RemoveMessage(id=message.id) for message in messages[:-2]]
-    return {"summary": response.content, "messages": delete_messages}
+    # delete_messages = [RemoveMessage(id=message.id) for message in messages[:-2]]
+    return {"summary": response.content, "messages": messages}
 
 
 graph = StateGraph(AgentState)
@@ -229,7 +230,9 @@ def getUserInput():
     return user_input
 
 
-def generateResponse(user_input: str, emotion_vals: str) -> dict:
+def generateResponse(user_input: str, emotion_vals: str):
+    if user_input == "exit":
+        return
     system_message = SYSTEM_PROMPT.replace("emotion_vals", emotion_vals)
     response = agent.invoke(
         {
@@ -242,10 +245,16 @@ def generateResponse(user_input: str, emotion_vals: str) -> dict:
     )
     print("Gemini Chatbot: ", end="")
     print(response["messages"][-1].content)
+    messages = response["messages"]
+    output = []
+    for message in messages:
+        if isinstance(message, HumanMessage):
+            output.append(message)
+
     # for chunk in response:
     #     print(chunk.text, end="", flush=True)
 
-    return response
+    return {"summary": response.get("summary", ""), "messages": output}
 
 
 def pyModule(metta: MeTTa, name: Atom, *args: Atom):

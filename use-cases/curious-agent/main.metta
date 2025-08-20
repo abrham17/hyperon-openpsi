@@ -1,20 +1,35 @@
- 
-;; so what are the things that are known in prior
-;; 1. An agent knows the current context it is in.
-;; 2. An agent knows the goal it shall achieve. Should involve in some kind of searching mechanism
-;; 3. There is a rule space that contains all the necessary cognitive schema. This is expected 
-;; to be mined by the pattern miner.
-;; 4. Since the agent knows its initial state, it will start 
-;; from there and search rules that begins with the initial state.
-;; 5. Hence, the agent selects the rule with the best metric.
-;; 6. Then it selects the action from the rule and adds it to an accumulator.
-;; 7. Then it starts from the goal as a context from the rule that is selected.
-!(bind! &ruleSpace (new-space))
+!(register-module! ../../../hyperon-openpsi)
+!(import! &self utils) 
+!(import! &self hyperon-openpsi:main:feed-back-loop:feed-back-loop)
+!(import! &self hyperon-openpsi:main:modulator:modulator)
+!(import! &self hyperon-openpsi:main:demand:demand)
+!(import! &self hyperon-openpsi:main:mind-agents:feeling-updater:feeling-updaters)
+!(import! &self hyperon-openpsi:main:mind-agents:modulator-updater:modulator-updaters)
+!(import! &self hyperon-openpsi:main:mind-agents:action-planner:action-planner-v1)
+!(import! &self hyperon-openpsi:psi-utilities:psi_utils)
+
+!(register-module! ../../utilities-module)
+!(import! &self utilities-module:utils)
 
 
-(= (addRulesToSpace $space)
-    (add-reduct $space ( superpose 
-      (
+;; This function implements the kb-initializer for the open-psi loop to work
+(: kb-initializer (-> Grounded Expression))
+(= (kb-initializer $kb)
+   (let* 
+     (
+      ($rules (collapse (get-atoms &ruleSpace)))
+      ($modulators (collapse (get-atoms &modulator-space)))
+      ($demands (collapse (get-atoms &demandspace)))
+      ($partialKb (union-atom $rules $modulators))
+      ($kbExp (union-atom $partialKb $demands))
+      ($_ (collapse (add-atoms $kb $kbExp)))
+    )
+    ()
+	)
+)
+
+(= (populateRuleSpace $ruleSpace) 
+      (add-reduct $ruleSpace (superpose (
         ((: r1 ((TTV 1 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Conversation-Started 0.9 0.6) initiate-dialogue)) (Goal Send-Greeting 1.0 1.0)))) 4)
         ((: r2 ((TTV 2 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Send-Greeting 0.9 0.6) elicit-response)) (Goal Receive-User-Response 1.0 1.0)))) 7)
         ((: r3a ((TTV 3 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Receive-User-Response 0.9 0.6) interpret-mood)) (Goal Understand-Initial-Mood 1.0 1.0)))) 8)
@@ -127,174 +142,123 @@
 ;        ; ((: r108 ((TTV 108 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Confirm-Solution-Accuracy 0.9 0.6) explore-user-preferences)) (Goal Understand-Solution-Preferences 1.0 1.0)))) 4)
 ;        ; ((: r109 ((TTV 109 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Solution-Preferences 0.9 0.6) finalize-solutions)) (Goal Finalize-Solution-Recommendations 1.0 1.0)))) 9)
 ;        ; ((: r110 ((TTV 110 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Finalize-Solution-Recommendations 0.9 0.6) check-user-satisfaction)) (Goal Confirm-User-Satisfaction 1.0 1.0)))) 5)
+      )))
+)
+
+(= (addDemandGoalRels $space)
+    (add-reduct $space 
+     (superpose 
+      (
+        (: (demand certainty 0.1) (Goal Send-Greeting 1.0 1.0)) ; r1: Initiating dialogue requires certainty to start engagement.
+(: (demand certainty 0.1) (Goal Receive-User-Response 1.0 1.0)) ; r2: Eliciting response aligns with certainty, matches example.
+(: (demand competence 0.9) (Goal Understand-Initial-Mood 1.0 1.0)) ; r3a: Interpreting mood requires understanding, fits competence.
+(: (demand competence 0.9) (Goal Understand-Initial-Context 1.0 1.0)) ; r3b: Interpreting context involves analysis, fits competence.
+(: (demand energy 0.9) (Goal Explore-Mood-Details 1.0 1.0)) ; r4: Probing mood is emotionally engaging, fits energy.
+(: (demand competence 0.9) (Goal Ask-Daily-Activities 1.0 1.0)) ; r5, r6: Requesting activities involves gathering info, fits competence.
+(: (demand competence 0.9) (Goal Learn-Activity-Details 1.0 1.0)) ; r7: Collecting details requires learning, fits competence.
+(: (demand competence 0.9) (Goal Understand-Hobby-Preferences 1.0 1.0)) ; r8a: Exploring hobbies involves understanding, fits competence.
+(: (demand competence 0.9) (Goal Understand-Future-Goals 1.0 1.0)) ; r8b: Exploring goals requires analysis, fits competence.
+(: (demand integrity 1.0) (Goal Summarize-User-Preferences 1.0 1.0)) ; r9, r10: Summarizing preferences ensures accurate synthesis, fits integrity.
+(: (demand competence 0.9) (Goal Understand-User-Interests 1.0 1.0)) ; r11: Finalizing interest understanding requires competence.
+(: (demand energy 0.9) (Goal Off-Topic-Discussion 1.0 1.0)) ; d1, d5: Discussing random topics requires engagement, fits energy.
+(: (demand energy 0.9) (Goal Engage-User-Fun 1.0 1.0)) ; d2: Sharing a joke is engaging, fits energy.
+(: (demand energy 0.9) (Goal Provide-Feedback 1.0 1.0)) ; d4: Offering advice involves active engagement, fits energy.
+(: (demand energy 0.9) (Goal Engage-User-Story 1.0 1.0)) ; d7: Sharing a story is emotionally engaging, fits energy.
+(: (demand competence 0.9) (Goal Ask-Recent-Events 1.0 1.0)) ; r19: Inquiring events involves gathering info, fits competence.
+(: (demand competence 0.9) (Goal Learn-Recent-Event-Details 1.0 1.0)) ; r20: Collecting event details requires learning, fits competence.
+(: (demand competence 0.9) (Goal Understand-Event-Impact 1.0 1.0)) ; r21: Assessing impact involves analysis, fits competence.
+(: (demand energy 0.9) (Goal Explore-Event-Emotions 1.0 1.0)) ; r22: Probing emotions is engaging, matches example energy demand.
+(: (demand competence 0.9) (Goal Understand-Event-Significance 1.0 1.0)) ; r23: Assessing significance requires analysis, fits competence.
+(: (demand energy 0.9) (Goal Propose-Related-Topics 1.0 1.0)) ; r24: Suggesting topics involves engagement, fits energy.
+(: (demand certainty 0.1) (Goal Receive-Topic-Choice 1.0 1.0)) ; r25: Eliciting topic choice aligns with receiving response, fits certainty.
+(: (demand energy 0.9) (Goal Discuss-Chosen-Topic 1.0 1.0)) ; r26: Discussing chosen topic requires engagement, fits energy.
+(: (demand competence 0.9) (Goal Deepen-Topic-Understanding 1.0 1.0)) ; r27: Deepening understanding requires analysis, fits competence.
+(: (demand competence 0.9) (Goal Learn-Specific-Topic-Details 1.0 1.0)) ; r28: Learning details involves competence, matches example.
+(: (demand competence 0.9) (Goal Evaluate-Topic-Interest 1.0 1.0)) ; r29: Assessing interest requires analysis, fits competence.
+(: (demand certainty 0.9) (Goal Confirm-User-Engagement 1.0 1.0)) ; r30: Checking engagement aligns with certainty, matches example.
+(: (demand energy 0.9) (Goal Re-engage-User 1.0 1.0)) ; r31: Re-engaging user requires energy, matches example.
+(: (demand energy 0.9) (Goal Propose-New-Topic 1.0 1.0)) ; r32: Suggesting new topic involves engagement, fits energy.
+(: (demand certainty 0.1) (Goal Receive-New-Topic-Choice 1.0 1.0)) ; r33: Eliciting new topic choice aligns with certainty.
+(: (demand energy 0.9) (Goal Discuss-New-Topic 1.0 1.0)) ; r34: Discussing new topic requires engagement, fits energy.
+(: (demand competence 0.9) (Goal Learn-New-Topic-Details 1.0 1.0)) ; r35: Learning new topic details involves competence.
+(: (demand competence 0.9) (Goal Evaluate-Topic-Relevance 1.0 1.0)) ; r36: Assessing relevance requires analysis, fits competence.
+(: (demand competence 0.9) (Goal Relate-To-User-Preferences 1.0 1.0)) ; r37: Connecting to preferences involves understanding, fits competence.
+(: (demand certainty 0.9) (Goal Confirm-Topic-Relevance 1.0 1.0)) ; r38: Confirming relevance aligns with certainty, matches example.
+(: (demand energy 0.9) (Goal Deepen-Topic-Exploration 1.0 1.0)) ; r39: Deepening exploration requires engagement, matches example.
+(: (demand competence 0.9) (Goal Learn-Detailed-Topic-Insights 1.0 1.0)) ; r40: Learning detailed insights involves competence.
+(: (demand competence 0.9) (Goal Understand-Topic-Insights 1.0 1.0)) ; r41: Understanding insights requires analysis, matches example.
+(: (demand integrity 1.0) (Goal Summarize-Topic-Insights 1.0 1.0)) ; r42: Summarizing insights ensures accuracy, fits integrity.
+(: (demand integrity 1.0) (Goal Confirm-Insight-Accuracy 1.0 1.0)) ; r43: Confirming accuracy aligns with integrity, matches example.
+(: (demand integrity 1.0) (Goal Refine-Topic-Understanding 1.0 1.0)) ; r44: Refining understanding ensures accuracy, matches example.
+(: (demand competence 0.9) (Goal Identify-Related-Interests 1.0 1.0)) ; r45: Exploring related interests involves analysis, fits competence.
+(: (demand competence 0.9) (Goal Learn-Preference-Details 1.0 1.0)) ; r46: Learning preference details requires competence.
+(: (demand competence 0.9) (Goal Understand-Preference-Strength 1.0 1.0)) ; r47: Assessing preference strength involves analysis, fits competence.
+(: (demand energy 0.9) (Goal Explore-Preference-Motivations 1.0 1.0)) ; r48: Exploring motivations requires engagement, fits energy.
+(: (demand integrity 1.0) (Goal Summarize-Preference-Insights 1.0 1.0)) ; r49: Summarizing preferences ensures accuracy, fits integrity.
+(: (demand integrity 1.0) (Goal Receive-Preference-Feedback 1.0 1.0)) ; r50: Checking feedback ensures accurate understanding, fits integrity.
+    )
+    )
+  )
+)
+
+(= (populateDemandSpace $demandspace) 
+   (add-reduct $demandspace 
+    (superpose 
+      (
+        (demand affiliation 0.5) 
+        (demand energy 0.9) 
+        (demand competence 0.9)
+        (demand certainty 0.1)
+        (demand integrity 1.0)
         )
       )
     )
+   )
 
-)
-;;gets weights from rule
-(= (getWeightFromRule $rule)
-    (let ($schema $weight) $rule $weight)
-)
-;; The below function extracts an action from a cognitive schema.
-;; The input will be a scalar weighted rule and returns an action. 
-(= (selectActionFromRule $rule)
-    (let* (
-        (($schema $weight) $rule)
-        ($schema (: $handle ((TTV $time (STV $bel $conf)) (IMPLICATION_LINK (AND_LINK ($context $action)) $goal))))
-    )
-        $action
-    )
-)
-;; select single action from available rules. 
-(= (selectSingleActionHelper $space $rulesWithWeight $minValue $currAction $targetValue)
-    (if (== $rulesWithWeight ())
-        (let $handleWithAction (findRulesWithAction $space $currAction) ;; a temporary solution
-            ((car-atom $handleWithAction) $currAction)
+!(addDemandGoalRels &kb)
+!(populateRuleSpace &ruleSpace)
+!(populateDemandSpace &demandspace)
+!(insert-modulators &modulator-space)
+!(kb-initializer &kb)
 
+
+(= (loop $emotionVals) 
+   (let* (
+        ($userInput (pyModule getUserInput ()))
+        ($response (pyModule generateResponse ($userInput $emotionVals)))
+        (($content $summary) (extractTuple $response))
+        ;(() (println! $content))
+        ;(() (println! (content summary $content $userInput)))
+        ($rules (collapse (get-atoms &ruleSpace)))
+        ($rule (pyModuleX correlation_matcher ($summary $rules $content)))
+        ;($_ (println! (selected Rule --> (get-metatype $rule) $rule)))
+        (((: $handle ($tv (IMPLICATION_LINK (AND_LINK ((Goal $context $x_0 $y_0) $action)) $goal))) $wght) $rule )
+        ;(() (println! (selected Context --> (get-metatype $context) $context)))
+        ($emotion (psi-agent-loop $context &kb))
+        (() (println! (selected Emotion --> $emotion)))
+        ($demands (get-atoms &demandspace))
+        (() (println! (new demands $demands)))
+        ($mods (get-atoms &modulator-space))
+        (() (println! (new modulators $mods)))
+      )
+      (
+        if(== $userInput "exit")
+          ()
+          (loop $emotion)
+      )
+    )
+   )
+
+(= (extractTuple $response) 
+   (let* (
+          ($messages ((py-dot $response get) "messages" ""))
+          ($last_message ((py-dot $messages __getitem__) -1))
+          ($content (py-dot $last_message content))
+          ($summary ((py-dot $response get) "summary" ""))
         )
-        (let* (
-            ($currRule (car-atom $rulesWithWeight))
-            ($tail (cdr-atom $rulesWithWeight))
-            ($weight (getWeightFromRule $currRule))
-            ($ruleAction (selectActionFromRule $currRule))
-            ($range (- $targetValue $weight))
-        )
-            (if (< $range (- $targetValue $minValue))
-                (selectSingleActionHelper $space $tail $weight $ruleAction $targetValue)
-                (selectSingleActionHelper $space $tail $minValue $currAction $targetValue)
-            )
-        )
+        ($content $summary)
+     )
+   )
 
-    )
-    
-)
-
-;; This functions selects a single action from a list of rules
-;; That are going to be implemented in relation to a target value.
-(= (selectSingleAction $space $rulesWithWeight $targetValue)
-    (if (or (== $rulesWithWeight ()) (== $rulesWithWeight (())))
-        (() ())
-        (let* (
-            ($head (car-atom $rulesWithWeight))
-            ($action (selectActionFromRule $head))
-            ($weight (getWeightFromRule $head))
-        )
-            (selectSingleActionHelper $space $rulesWithWeight $weight $action $targetValue)
-        )
-    )
-)
-
-;; This function might require further modification later.
-(= (findRulesWithContext $space $context)
-    (collapse (match $space ((: $handle ((TTV $time (STV $bel $conf)) (IMPLICATION_LINK (AND_LINK ((Goal $context $x $y) $action)) $goal))) $weight)
-        ((: $handle ((TTV $time (STV $bel $conf)) (IMPLICATION_LINK (AND_LINK ((Goal $context $x $y) $action)) $goal))) $weight) 
-    ))
-
-)
-;; finds rules with goals as contexts
-(= (findRulesWithGoalAsContext $space $goal)
-    (collapse (match $space ((: $handle ((TTV $time (STV $bel $conf)) (IMPLICATION_LINK (AND_LINK ((Goal $goal $x $y) $action)) $nextGoal))) $weight)
-        ((: $handle ((TTV $time (STV $bel $conf)) (IMPLICATION_LINK (AND_LINK ((Goal $goal $x $y) $action)) $nextGoal))) $weight) 
-    ))
-
-)
-;; finds rules with similar actions
-(= (findRulesWithAction $space $action)
-    (collapse (match $space ((: $handle ((TTV $time (STV $bel $conf)) (IMPLICATION_LINK (AND_LINK ($context $action)) $goal))) $weight)
-        ((: $handle ((TTV $time (STV $bel $conf)) (IMPLICATION_LINK (AND_LINK ($context $action)) $goal))) $weight)
-        
-    ))
-
-)
-;; This function fetches rules for multiple goals given as an s-expression. 
-(= (findRulesForMultipleGoals $space $goals $accum)
-    (if (== $goals ())
-        $accum
-        (let* (
-            (($head $tail) (decons-atom $goals))
-            ($goalName (extractGoalName $head))
-            ($rules (findRulesWithGoalAsContext $space $goalName))
-            ($newAccum (union-atom $accum $rules))
-        )  
-            (findRulesForMultipleGoals $space $tail $newAccum)
-        )
-    )
-)
-;; filters rules with the same goal name.
-(= (findRulesWithGoal $space $goal)
-    (collapse (match $space ((: $handle ((TTV $time (STV $bel $conf)) (IMPLICATION_LINK (AND_LINK ($context $action)) (Goal $goal $x $y)))) $weight)
-        ((: $handle ((TTV $time (STV $bel $conf)) (IMPLICATION_LINK (AND_LINK ($context $action)) (Goal $goal $x $y)))) $weight)
-        
-    ))
-)
-
-(= (getDgv $goal)
-    (let (Goal $name $x $y) $goal $y)
-)
-
-(= (extractGoalName $goal)
-    (let (Goal $name $x $y) $goal $name)
-)
-
-(= (extractGoalFromRule $rule)
-    (let ((: $handle ((TTV $time (STV $bel $conf)) (IMPLICATION_LINK (AND_LINK ($context $action)) $goal))) $weight) $rule $goal)
-
-)
-
-(= (extractContextFromRule $rule)
-    (let ((: $handle ((TTV $time (STV $bel $conf)) (IMPLICATION_LINK (AND_LINK ($context $action)) $goal))) $weight) $rule $context)
-)
-;; an implementation inspired that greedily selects 
-;; an action at each step.
-(= (planner' $ruleSpace $initState $goal $target $accum)
-    (if (== $initState $goal)
-        $accum
-        (let* (
-            ($relatedRules (findRulesWithContext $ruleSpace $initState))
-            ;($_ (println! (relatedRules $relatedRules)))
-            (($rule $currAction) (selectSingleAction $ruleSpace $relatedRules $target))
-            ;($_ (println! (rule $rule action $currAction)))
-            ($accum' (if (== $currAction ()) $accum (union-atom $accum ($currAction))))
-            ($goals (collapse (extractGoalFromRule (superpose $relatedRules))))
-            ($nextRules (findRulesForMultipleGoals $ruleSpace $goals ()))
-            ;($_ (println! (goals $goals nextRules $nextRules)))
-            (($currRule $action) (selectSingleAction $ruleSpace $nextRules $target))
-            ;($_ (println! (currRule $currRule action $action)))
-            
-        )
-            (if (== $action ())
-                $accum'
-                (let* (
-                    ($newAccum (union-atom $accum' ($action))) ;; accumulating actions in the action accumulator.
-                    ($newState (extractGoalFromRule $currRule))
-                    ($stateName (extractGoalName $newState))         
-                )
-                    (planner' $ruleSpace $stateName $goal $target $newAccum)
-                )
-            )
-
-        )        
-    )
-)
-(= (planner $ruleSpace $initState $goal)
-    (let* (
-        
-        ($targetRules (findRulesWithGoal $ruleSpace $goal))
-        ;($_ (println! (targetRules $targetRules)))
-        ($targetRules (if (== $targetRules ()) (()) $targetRules))
-        ($targetRule (car-atom $targetRules))
-        ($target (getWeightFromRule $targetRule))
-        ;($_ (println! (targetRules $targetRules target $target)))
-        
-    )
-        (planner' $ruleSpace $initState $goal $target ())
-
-    )
-)
-
-;!(addRulesToSpace &ruleSpace )
-;;;!(get-atoms &ruleSpace)
-;!(planner &ruleSpace Conversation-Started Receive-User-Response)
-
-;;!(findRulesWithGoal &ruleSpace Receive-User-Response) 
+!(loop (happinessValue 0.5833333333333334 sadnessValue 0.03965158772425329 angerValue 0.9 fearValue 0.044551142286994694 gratitudeValue 0.66666666666
+66667))

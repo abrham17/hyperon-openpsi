@@ -10,8 +10,9 @@
 ;; !(import! &self hyperon-openpsi:main:feed-back-loop:feed-back-helpers)
 !(import! &self hyperon-openpsi:main:mind-agents:action-planner:action-planner-v1)
 !(import! &self hyperon-openpsi:main:mind-agents:feeling-updater:feeling-updaters)
+!(import! &self hyperon-openpsi:use-cases:curious-agent:demand-goal-link)
 !(bind! &kb (new-space))
-!(addRulesToSpace &ruleSpace) 
+!(populate-link-space &ruleSpace) 
 !(insert-modulators &modulator-space)
 
 
@@ -283,7 +284,7 @@
         ($_ (println! (demands $demands)))
 		($currDemand (demandSelector $demands))
         ($_ (println! (dmSelector $currDemand)))
-        ($goalObj (goalSelector $currDemand))
+        ($goalObj (goal-selector $currDemand))
 		((Goal $goal $goalVal1 $goalVal2) $goalObj) 
         ($_ (println! (goal-psi $goal)))
 		($actions (planner &ruleSpace $state $goal))
