@@ -6,7 +6,7 @@
 
 (= (Tested Actions) &testedActions)
 
-(= (hillClimber $state $goal $testedActions $plan $ruleSpace) (
+(= (hillClimbingPlanner $state $goal $testedActions $plan $ruleSpace) (
     if (== $state $goal)
         (reverse $plan ())
         (let* (
@@ -22,8 +22,8 @@
                 ($bestAction (car-atom $bestPair))
                 (($bestState) (cdr-atom $bestPair))
             ) (if (>= $currentDistance $minDistance)
-                (let () (update-atom $testedActions ($state $bestAction) ($bestState $bestAction)) ;; Why not just add the new bestState
-                    (hillClimber $bestState $goal $testedActions (cons-atom $bestAction $plan) $ruleSpace)
+                (let () (update-atom $testedActions ($state $bestAction) ($bestState $bestAction))
+                    (hillClimbingPlanner $bestState $goal $testedActions (cons-atom $bestAction $plan) $ruleSpace)
                 )
                 (let $res (allTested $untriedActions $tested) (let $m (markAllTested $state $untriedActions $testedActions) ()))
             ))
@@ -134,3 +134,4 @@
       $acc
       (let ($head $tail ) (decons-atom $list) (reverse $tail (cons-atom $head $acc) ))
 ))
+
