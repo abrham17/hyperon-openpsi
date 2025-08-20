@@ -16,8 +16,6 @@
 !(addDemandGoalRels &kb) 
 !(insert-modulators &modulator-space)
 
-
-
 (: remove-atoms' (-> hyperon::space::DynSpace Expression Expression))
 (= (remove-atoms' $space $expression)
     (if (== $expression ())
