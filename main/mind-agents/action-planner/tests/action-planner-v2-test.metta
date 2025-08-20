@@ -2,80 +2,68 @@
 !(register-module! ../../../../utilities-module)
 
 !(import! &self hyperon-openpsi:main:mind-agents:action-planner:action-planner-v2)
-!(import! &self hyperon-openpsi:main:types)
-!(import! &self hyperon-openpsi:main:rules:rule)
-!(import! &self utilities-module:utils)
+!(bind! &ruleSpace (new-space))
+
+;; Test
+(= (addRulesToSpace $space)
+    (add-reduct $space (superpose 
+(
+            
+((: r1 ((TTV 1 (STV 0.8 0.7)) 
+        (IMPLICATION_LINK 
+          (AND_LINK ((Goal init 0.9 0.6) explore)) 
+          (Goal found_target 1.0 1.0)))) 2)
+
+;; r2: Approach after finding target
+((: r2 ((TTV 1 (STV 0.75 0.65)) 
+        (IMPLICATION_LINK 
+          (AND_LINK ((Goal found_target 1.0 1.0) approach)) 
+          (Goal near_target 1.0 1.0)))) 3)
+
+;; r3: Interact when near
+((: r3 ((TTV 1 (STV 0.7 0.6)) 
+        (IMPLICATION_LINK 
+          (AND_LINK ((Goal near_target 1.0 1.0) interact)) 
+          (Goal task_done 1.0 1.0)))) 2)
+
+;; r4: Report task done
+((: r4 ((TTV 1 (STV 0.65 0.6)) 
+        (IMPLICATION_LINK 
+          (AND_LINK ((Goal task_done 1.0 1.0) report)) 
+          (Goal mission_complete 1.0 1.0)))) 10)
+
+;; r5: Do nothing and become low energy
+((: r5 ((TTV 1 (STV 0.5 0.5)) 
+        (IMPLICATION_LINK 
+          (AND_LINK ((Goal init 0.8 0.5) idle)) 
+          (Goal low_energy 1.0 1.0)))) 1)
+
+;; r6: Analyze after mission complete
+((: r6 ((TTV 1 (STV 0.75 0.7)) 
+        (IMPLICATION_LINK 
+          (AND_LINK ((Goal mission_complete 0.9 0.7) analyze)) 
+          (Goal analyze_data 1.0 1.0)))) 4)
+
+;; r7: Upload results after analysis
+((: r7 ((TTV 1 (STV 0.7 0.7)) 
+        (IMPLICATION_LINK 
+          (AND_LINK ((Goal analyze_data 0.85 0.7) upload)) 
+          (Goal upload_results 1.0 1.0)))) 2)
+
+;; r8: Reboot after upload
+((: r8 ((TTV 1 (STV 0.9 0.8)) 
+        (IMPLICATION_LINK 
+          (AND_LINK ((Goal upload_results 0.95 0.75) reboot)) 
+          (Goal reset_system 1.0 1.0)))) 1)
+
+            )
+        )
+    )
+
+)
+
+!(addRulesToSpace &ruleSpace)
 
 
-!(bind! &r (new-space)) 
-
-!(addGoal (S1 is off) 0.0 () &r)
-!(addGoal (S2 is off) 0.0 () &r)
-!(addGoal (S3 is off) 0.0 () &r)
-!(addGoal (S4 is off) 0.0 () &r)
-
-!(addGoal (S1 is on) 0.5 1 &r)
-!(addGoal (S2 is on) 0.75 1 &r)
-!(addGoal (S3 is on) 1.0 1.0 &r)
-!(addGoal (S4 is on) 0.0 () &r)
-
-;First test case
-                ;Test Description:
-;Imagine a system where a device (e.g., a machine or a light)
-;requires three switches — S1, S2, and S3—to be turned on in a specific order due to dependencies.
-;The final goal is to have S3 on, which activates the device. However:
-; - S1 must be turned on first (no prior dependency).
-; - S2 can only be turned on if S1 is already on.
-; - S3 can only be turned on if S2 is already on.
-
-!(addRule &r r1 ((S1 is off)) (Turn on S1) (S1 is on) (TTV 0 (STV 1.0 1.0)))
-!(addRule &r r2 ((S1 is on)) (Turn on S2) (S2 is on) (TTV 0 (STV 1.0 1.0)))
-!(addRule &r r3 ((S2 is on)) (Turn on S3) (S3 is on) (TTV 0 (STV 1.0 1.0)))
-!(addRule &r r3' ((S3 is off)) (Turn on S3) (S3 is on) (TTV 0 (STV 1.0 1.0)))
-!(addRule &r r4 ((S3 is on)) (Turn on S4) (S4 is on) (TTV 0 (STV 1.0 1.0)))
-!(addRule &r r4' ((S4 is off)) (Turn on S4) (S4 is on) (TTV 0 (STV 1.0 1.0)))
-;!(addRule &r r5 ((S1 is on)) (Turn off S1) (S1 is off) (TTV 0 (STV 1.0 1.0)))
-
-!(assertEqual (hillClimbingPlanner (S1 is off) (S3 is on) (TestedActions) () &r) ((Turn on S3) (Turn on S2) (Turn on S1)))
-
-
-;Second Test Case
-;                   Test Description:
-; The scenario is  a robot soccer game  where the players try to kick the ball to the goal and score.  
-; requires players to kick the ball  — P1, P2, P3 and P4 
-; The final goal is to score a goal, and get a point. However:
-; - P1 can have the ball by giving to it.
-; - P2 can have the ball  if P1 is kicked to it or by giving to it.
-; - P3 can only have the ball if P2  kick it to P3.
-; - P4 can have the ball if P3 is kicked to it or by giving to it.
-; - Goal is scored only if P4 kicked the ball to the Goal 
-!(addGoal (P1 doesn't have the ball) 0.0 () &r)
-!(addGoal (P2 doesn't have the ball) 0.0 () &r)
-!(addGoal (P3 doesn't have the ball) 0.0 () &r)
-!(addGoal (P4 doesn't have the ball) 0.0 () &r)
-
-!(addGoal (P1 has the ball) 0.1 1.0 &r)
-!(addGoal (P2 has the ball) 0.4 1.0 &r)
-!(addGoal (P3 has the ball) 0.7 1.0 &r)
-!(addGoal (P4 has the ball) 0.8 1.0 &r)
-!(addGoal (Goal Scored) 1.0 1.0 &r)
-
-
-!(addRule &r rr1' ((P1 doesn't have the ball)) (Give ball to P1) (P1 has the ball) (TTV 0 (STV 1.0 1.0)))
-!(addRule &r rr1 ((P1 has the ball)) (P1 Kick to P2) (P2 has the ball) (TTV 0 (STV 1.0 1.0)))
-!(addRule &r rr2' ((P2 doesn't have the ball)) (Give ball to P2) (P2 has the ball) (TTV 0 (STV 1.0 1.0)))
-!(addRule &r rr2 ((P2 has the ball)) (P2 Kick to P3) (P3 has the ball) (TTV 0 (STV 1.0 1.0)))
-!(addRule &r rr3 ((P3 has the ball)) (P3 Kick to P4) (P4 has the ball) (TTV 0 (STV 1.0 1.0)))
-!(addRule &r rr4' ((P4 doesn't have the ball)) (Give ball to P4) (P4 has the ball) (TTV 0 (STV 1.0 1.0)))
-!(addRule &r rr4 ((P4 has the ball)) (P4 Kick to Goal) (Goal Scored) (TTV 0 (STV 1.0 1.0)))
-
-
- !(assertEqual (hillClimbingPlanner (P1 has the ball) (P3 has the ball) (TestedActions) () &r) ((P2 Kick to P3) (P1 Kick to P2)))
- !(assertEqual (hillClimbingPlanner (P1 has the ball) (Goal Scored) (TestedActions) () &r) ((P4 Kick to Goal) (P3 Kick to P4) (P2 Kick to P3) (P1 Kick to P2)) )
- !(assertEqual (hillClimbingPlanner (P2 has the ball) (Goal Scored) (TestedActions) () &r) ((P4 Kick to Goal) (P3 Kick to P4) (P2 Kick to P3)))
- !(assertEqual (hillClimbingPlanner (P2 has the ball) (P4 has the ball) (TestedActions) () &r) ((P3 Kick to P4) (P2 Kick to P3)))
- !(assertEqual (hillClimbingPlanner (P1 doesn't have the ball) (Goal Scored) (TestedActions) () &r) ((P4 Kick to Goal) (P3 Kick to P4) (P2 Kick to P3) (P1 Kick to P2) (Give ball to P1)))
- !(assertEqual (hillClimbingPlanner (P2 doesn't have the ball) (Goal Scored) (TestedActions) () &r) ((P4 Kick to Goal) (P3 Kick to P4) (P2 Kick to P3) (Give ball to P2)))
- !(assertEqual (hillClimbingPlanner (P3 doesn't have the ball) (Goal Scored) (TestedActions) () &r) ()) ; no actions taken since there is no rule to apply
- !(assertEqual (hillClimbingPlanner (P4 doesn't have the ball) (Goal Scored) (TestedActions) () &r) ((P4 Kick to Goal) (Give ball to P4)))
- !(assertEqual (hillClimbingPlanner (P4 has the ball) (P1 has the ball) (TestedActions) () &r) ()) ; no rules to go backward 
+!(assertEqual (hillClimbingPlanner init mission_complete (Tested Actions) () &ruleSpace) (explore approach interact report))
+!(assertEqual (hillClimbingPlanner init task_done (Tested Actions) () &ruleSpace) (explore approach interact))
