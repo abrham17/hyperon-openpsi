@@ -1,19 +1,18 @@
-(: psi-loop (-> Symbol hyperon::space::DynSpace Expression)) 
-(= (psi-loop $state $kb)
+(: psi-loop-v2 (-> Symbol hyperon::space::DynSpace Expression)) 
+(= (psi-loop-v2 $state $kb)
 	(let* (
 	    ($demands (queryAll $kb demand))
-        ($_ (println! (demands $demands)))
+        ($_ (println! (Available Demands $demands)))
 
 		($currDemand (demandSelector $demands))
-        ($_ (println! (dmSelector $currDemand)))
+        ($_ (println! (Selected Demand: $currDemand)))
 
         ($goalObj (goalSelector $currDemand))
 		((Goal $goal $goalVal1 $goalVal2) $goalObj) 
-        ($_ (println! (goal-psi $goal)))
+        ($_ (println! (Selected Goal: $goal)))
 
-		($actions-reversed (hillClimbingPlanner $state $goal (TestedActions) () &ruleSpace)) ;; Hillclimber returns actions in reverse order.
-		($actions (reverse $actions-reversed ()))
-        ($_ (println! (actions-psi-to-apply $actions goal $goal demand $currDemand)))
+		($actions (hillClimbingPlanner $state $goal (Tested Actions) () &ruleSpace))
+        ($_ (println! (Actions: $actions goal $goal demand $currDemand)))
 
 		($applyValue (applyActions $actions $goalObj $currDemand)) 
         ($_ (println! (applyValue $applyValue)))
@@ -21,7 +20,7 @@
 		($competenceDemand (getDemandByName &demandspace competence)) 
 		($affiliationDemand (getDemandByName &demandspace affiliation))
 		($energyDemand (getDemandByName &demandspace energy))
-        ($_ (println! (demandValues $competenceDemand $affiliationDemand $energyDemand)))
+        ($_ (println! (Demand Values: $competenceDemand $affiliationDemand $energyDemand)))
 		
 		($modUpdate (modulatorUpdaterAgent &modulator-space $competenceDemand $affiliationDemand $energyDemand))
         ($_ (println! (modUpdate $modUpdate modulatorValues (collapse (get-atoms &modulator-space))))) 
@@ -38,6 +37,6 @@
 		($_ (update-all modulator &modulator-space $kb))
         ($_ (update-all demand &demandspace $kb))
 	)
-	  (hateValue $hateValue happinessValue $happinessValue sadnessValue $sadnessValue angerValue $angerValue)
+	  (happinessValue $happinessValue sadnessValue $sadnessValue angerValue $angerValue fearValue $fearValue gratitudeValue $gratitude) 
 	)	
 )
