@@ -1,6 +1,7 @@
 !(register-module! ../../../../../hyperon-openpsi)
 !(register-module! ../../../../utilities-module)
 
+!(import! &self utilities-module:utils)
 !(import! &self hyperon-openpsi:main:mind-agents:action-planner:action-planner-v2)
 !(bind! &ruleSpace (new-space))
 
@@ -63,7 +64,6 @@
 )
 
 !(addRulesToSpace &ruleSpace)
-
 
 !(assertEqual (hillClimbingPlanner init mission_complete (Tested Actions) () &ruleSpace) (explore approach interact report))
 !(assertEqual (hillClimbingPlanner init task_done (Tested Actions) () &ruleSpace) (explore approach interact))
