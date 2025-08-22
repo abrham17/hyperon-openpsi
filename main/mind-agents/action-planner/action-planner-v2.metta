@@ -11,18 +11,22 @@
         (reverse $plan ())
         (let* (
             ($tested (getTestedActions $state $testedActions))
+            ($_ (println! (Tested $tested)))
             ($applicableActions (getApplicableActions $state $ruleSpace))
             ($untriedActions (filterUntriedRules $applicableActions $tested ()))
+            ($_ (println! (Plan $plan)))
         ) (if (== $untriedActions ())
             ()
             (let* (
-                ($newStates (applyActions $untriedActions $state () $ruleSpace))
+                ($newStates (applyCurrentActions $untriedActions $state () $ruleSpace))
+                ($_ (println! (New States $newStates)))
                 (($minDistance $bestPair) (findMinDistance $newStates $goal 1000 () $ruleSpace))
                 ($currentDistance (distance $state $goal $ruleSpace))
                 ($bestAction (car-atom $bestPair))
                 (($bestState) (cdr-atom $bestPair))
+                ($_ (println! (Best State $bestState === $goal)))
             ) (if (>= $currentDistance $minDistance)
-                (let () (update-atom $testedActions ($state $bestAction) ($bestState $bestAction))
+                (let $_ (update-action-atom $testedActions ($state $bestAction) ($bestState $bestAction))
                     (hillClimbingPlanner $bestState $goal $testedActions (cons-atom $bestAction $plan) $ruleSpace)
                 )
                 (let $res (allTested $untriedActions $tested) (let $m (markAllTested $state $untriedActions $testedActions) ()))
@@ -38,7 +42,7 @@
     collapse (match $ruleSpace ((: $handle ($ttv (IMPLICATION_LINK (AND_LINK ((Goal $context $a $b) $action)) (Goal $goal $c $d)))) $weight) $action)
 ))
 
-(= (filterUntriedRules $actions $tested $acc) ( ;; Subtraction could be used
+(= (filterUntriedRules $actions $tested $acc) (
     if (== $actions ()) 
         $acc
         (let ($head $tail) (decons-atom $actions) 
@@ -48,16 +52,16 @@
         )
 ))
 
-(= (applyActions $actions $state $acc $ruleSpace) (
+(= (applyCurrentActions $actions $state $acc $ruleSpace) (
     if (== $actions ())
         $acc
         (let* (
             (($action $tail) (decons-atom $actions))
             ($res (collapse (match $ruleSpace ((: $handle ($ttv (IMPLICATION_LINK (AND_LINK ((Goal $state $a $b) $action)) (Goal $goal $c $d)))) $weight) ($action $goal))))
-            ($rest (applyActions $tail $state (union-atom $res $acc) $ruleSpace))
+            ($rest (applyCurrentActions $tail $state (union-atom $res $acc) $ruleSpace))
         )
         (if (== $action ())
-            (union-atom $acc $res) ;; Why reverse it?
+            (union-atom $acc $res)
             $rest)
         )
 ))
@@ -81,7 +85,7 @@
     ) (+ $gv-diff $dgv-diff)
 ))
 
-(= (update-atom $space $old-atom $new-atom) (
+(= (update-action-atom $space $old-atom $new-atom) (
     let $_ (remove-atom $space $old-atom) (add-atom $space $new-atom)
 ))
 
@@ -124,10 +128,6 @@
     )
 ))
 
-(: isMember (-> $a $aa Bool))
-(= (isMember $x $list)
-    (not (== (collapse (intersection (superpose ($x)) (superpose $list))) ()))
-)
 
 (=(reverse $list $acc) (
     if(== $list ()) 
