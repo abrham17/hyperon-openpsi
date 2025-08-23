@@ -15,19 +15,6 @@ metta.run("""
 !(bind! &emotion-space (new-space))
 """)
 
-metta.run("""
-!(create-emotion &emotion-space (emotion happiness 0.3))
-!(create-emotion &emotion-space (emotion anger 0.7))
-""")
-
-def update_emotions():
-    emotions = metta.run('!(get-emotions &emotion-space)')[0]
-    for e in emotions[0].get_children():
-        emotion_name = str(e.get_children()[1])
-        # Randomly update the emotion value to a new value between 0 and 1 
-        new_val = round(random.uniform(0, 1), 2)
-        # adds this value to the emotion space
-        metta.run(f'!(create-emotion &emotion-space (emotion {S(emotion_name)} {S(str(new_val))}))')
 
 def fetch_emotions():
     emotions = metta.run('!(get-emotions &emotion-space)')[0]
@@ -41,7 +28,6 @@ def fetch_emotions():
 fig, ax = plt.subplots()
 
 def animate(frame):
-    update_emotions()
 
     labels, values = fetch_emotions()
 
