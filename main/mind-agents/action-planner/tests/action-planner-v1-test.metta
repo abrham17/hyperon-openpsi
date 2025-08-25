@@ -1,7 +1,8 @@
 !(register-module! ../../../../../hyperon-openpsi)
 !(import! &self hyperon-openpsi:main:mind-agents:action-planner:action-planner-v1)
 
-!(addRulesToSpace &ruleSpace)
+
+!(addRulesToTestSpace &ruleSpace)
 !(assertEqual (getWeightFromRule ((: r1 ((TTV 1 (STV 0.8 0.7)) 
                     (IMPLICATION_LINK 
                     (AND_LINK ((Goal init 0.9 0.6) explore)) 
@@ -19,4 +20,4 @@
 !(assertEqual (findRulesWithGoalAsContext &ruleSpace low_energy) ())
 !(assertEqual (findRulesWithGoalAsContext &ruleSpace found_target) (((: r2 ((TTV 1 (STV 0.75 0.65)) (IMPLICATION_LINK (AND_LINK ((Goal found_target 1 1) approach)) (Goal near_target 1 1)))) 3)))
 !(assertEqual (planner &ruleSpace init  mission_complete) (explore approach interact report))
-        
+

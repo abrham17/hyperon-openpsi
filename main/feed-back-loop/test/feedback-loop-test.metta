@@ -6,15 +6,22 @@
 !(import! &self utilities-module:utils)
 !(import! &self hyperon-openpsi:psi-utilities:psi_utils)
 !(import! &self hyperon-openpsi:main:demand:demand)
- !(import! &self hyperon-openpsi:main:feed-back-loop:feed-back-loop)
+;; !(import! &self hyperon-openpsi:main:feed-back-loop:feed-back-loop)
 ;; !(import! &self hyperon-openpsi:main:feed-back-loop:feed-back-helpers)
 !(import! &self hyperon-openpsi:main:mind-agents:action-planner:action-planner-v1)
 !(import! &self hyperon-openpsi:main:mind-agents:feeling-updater:feeling-updaters)
-!(import! &self hyperon-openpsi:use-cases:curious-agent:setup-kb)
+!(bind! &kb (new-space))
+!(bind! &modulator-space (new-space))
+!(bind! &demandspace (new-space))
 
-
-!(addDemandGoalRels &kb) 
+!(addRulesToTestSpace &ruleSpace) 
 !(insert-modulators &modulator-space)
+
+!(addDemand &demandspace energy 0.6)
+!(addDemand &demandspace affiliation 0.5)
+!(addDemand &demandspace competence 0.2)
+
+
 
 (: remove-atoms' (-> hyperon::space::DynSpace Expression Expression))
 (= (remove-atoms' $space $expression)
@@ -24,7 +31,7 @@
             (($head $tail) (decons-atom $expression))
             ($_  (remove-atom $space $head))
            ($rem (collapse (get-atoms $space)))
-           ;($_ (println! (remaining-atoms $rem)))
+           ($_ (println! (remaining-atoms $rem)))
         )
             (remove-atoms' $space $tail)
         )
@@ -44,7 +51,7 @@
 (= (remove-occurrences $space $pattern)
    	(let* (
             ($atoms (collapse (match $space $pattern $pattern)))
-            ;($_ (println! (atoms-to-remove $atoms)))
+            ($_ (println! (atoms-to-remove $atoms)))
            ) 
 	  	(remove-atoms' $space $atoms)))
 
@@ -203,7 +210,7 @@
 			(selectMaxRule $tail $rule)
 
 		)
-
+	  	
 	)))
 
 
@@ -216,7 +223,7 @@
 		False
 		(let* (
 			(($rule $tail) (decons-atom $rules))
-            ;($_ (println! (isGoalMetInnerRule $rule tail $tail)))
+            ($_ (println! (isGoalMetInnerRule $rule tail $tail)))
 			($ruleGoal (extractGoalFromRule $rule))
             ($_ (println! (this is the goal $ruleGoal)))
 		)
@@ -271,7 +278,7 @@
 		($_ (collapse (add-atoms $kb $kbExp)))
 	)
      		()
-
+    
 	)
 )
 
@@ -283,7 +290,7 @@
         ($_ (println! (demands $demands)))
 		($currDemand (demandSelector $demands))
         ($_ (println! (dmSelector $currDemand)))
-        ($goalObj (goal-selector $currDemand))
+        ($goalObj (goalSelector $currDemand))
 		((Goal $goal $goalVal1 $goalVal2) $goalObj) 
         ($_ (println! (goal-psi $goal)))
 		($actions (planner &ruleSpace $state $goal))
@@ -294,7 +301,7 @@
         ($_ (println! (competence-psi $competenceDemand)))
 		($affiliationDemand (getDemandByName &demandspace affiliation))
 		($energyDemand (getDemandByName &demandspace energy))
-
+    
         ($_ (println! (demandValues $competenceDemand $affiliationDemand $energyDemand)))
 		($modUpdate (modulatorUpdaterAgent &modulator-space $competenceDemand $affiliationDemand $energyDemand))
 
@@ -346,21 +353,3 @@
 ;; !(happinessFeelingUpdater &modulator-space)
 
 ;; !(get-atoms &modulator-space)
-
-!(assertEqual (get-goal-value (Goal Confirm-Insight-Accuracy 0.9 0.6)) 0.9 )
-!(assertEqual (find-best-goal' 
-  ((Goal Confirm-Insight-Accuracy 0.5 0.6) 
-   (Goal confirm-goal-accuracy 0.01 0.6) 
-   (Goal refine-topic-understanding 0.1 0.6)) 
-  -1 
-  ()
-) (Goal Confirm-Insight-Accuracy 0.5 0.6))
-
-!(assertEqual (find-best-goal 
-  ((Goal Confirm-Insight-Accuracy 0.5 0.6) 
-   (Goal confirm-goal-accuracy 0.01 0.6) 
-   (Goal refine-topic-understanding 0.91 0.6)) 
- 
-) (Goal refine-topic-understanding 0.91 0.6) )
-
-!(assertEqual (goal-selector &kb (demand integrity 1.0)) (Goal Summarize-User-Preferences 1 1) )

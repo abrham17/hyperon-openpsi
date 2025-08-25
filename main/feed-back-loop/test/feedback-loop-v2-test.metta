@@ -14,6 +14,8 @@
 
 ;; Create the necessary spaces
 !(bind! &kb (new-space))
+!(bind! &modulator-space (new-space))
+!(bind! &demandspace (new-space))
 !(bind! &ruleSpace (new-space))
 
 (= (addRulesToSpaceV2 $space) (
@@ -29,6 +31,9 @@
 ;; Populate the spaces
 !(insert-modulators &modulator-space)
 !(addRulesToSpaceV2 &ruleSpace)
+!(addDemand &demandspace energy 0.6)
+!(addDemand &demandspace affiliation 0.5)
+!(addDemand &demandspace competence 0.2)
 
 (= (extractGoalFromRuleV2 $rule)
     (let (: $handle (IMPLICATION_LINK (AND_LINK ($context $action)) $goal)) $rule $goal)
