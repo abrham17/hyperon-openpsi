@@ -68,6 +68,7 @@
     )
 
 )
+
 (= (addRulesToSpace $space)
     (add-reduct $space ( superpose 
       (
@@ -188,6 +189,7 @@
     )
 
 )
+
 ;;gets weights from rule
 (= (getWeightFromRule $rule)
     (let ($schema $weight) $rule $weight)
@@ -333,6 +335,10 @@
         )        
     )
 )
+
+;; The main planner function that starts the planning process.
+;; It initializes the planning by finding rules related to the goal
+;; and then calls the recursive planner function.
 (= (planner $ruleSpace $initState $goal)
     (let* (
         
