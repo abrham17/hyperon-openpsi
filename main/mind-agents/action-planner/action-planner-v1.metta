@@ -189,7 +189,7 @@
 ;; an action at each step.
 (= (planner' $ruleSpace $initState $goal $target $accum)
     (if (== $initState $goal)
-        (union-atom $accum ($goal))
+        $accum
         (let* (
             ($relatedRules (findRulesWithContext $ruleSpace $initState))
             ($_ (println! (relatedRules $relatedRules)))
@@ -232,7 +232,7 @@
         ($_ (println! (targetRules $targetRules target $target)))
         
     )
-        (planner' $ruleSpace $initState $goal $target ($initState))
+        (planner' $ruleSpace $initState $goal $target ())
 
     )
 )
