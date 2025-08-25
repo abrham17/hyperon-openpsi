@@ -37,7 +37,7 @@
         ($rule (pyModuleX correlation_matcher ($summary $rules $userInput)))
         (((: $handle ($tv (IMPLICATION_LINK (AND_LINK ((Goal $context $x $y) $action)) $goal))) $wght) $rule)
         ($emotion (psi-agent-loop $context &kb))
-        (() (println! $emotion))
+        ;(() (println! $emotion))
       )
       (
         if(== $userInput "exit")
@@ -62,4 +62,4 @@
 !(insert-modulators &modulator-space)
 !(kb-initializer &kb)
 
-!(loop (happinessValue 0.5 sadnessValue 0.039 angerValue 0.9 fearValue 0.04 gratitudeValue 0.6))
+!(loop (happinessValue 0.5 sadnessValue 0.039 angerValue 0.2 fearValue 0.04 gratitudeValue 0.6))
