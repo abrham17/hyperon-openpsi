@@ -1,4 +1,3 @@
-!(bind! &demandspace (new-space))
 (: Demand Type)
 (: SkipDemand Type)
 ; (: demand (-> Symbol Number Demand))
@@ -65,6 +64,3 @@
 )
 (= (getDemandByName $space $name) (match $space (demand $name $x) (demand $name $x)))
 
-!(addDemand &demandspace energy 0.6)
-!(addDemand &demandspace affiliation 0.5)
-!(addDemand &demandspace competence 0.2)
