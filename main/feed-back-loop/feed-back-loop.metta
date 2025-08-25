@@ -1,6 +1,8 @@
 
 !(bind! &kb (new-space))
 
+!(bind! &modulator-space (new-space))
+!(bind! &demandspace (new-space))
 
 (: remove-atoms' (-> Grounded Expression Expression))
 (= (remove-atoms' $space $expression)
@@ -10,7 +12,7 @@
             (($head $tail) (decons-atom $expression))
             ($_  (remove-atom $space $head))
            ($rem (collapse (get-atoms $space)))
-           ($_ (println! (remaining-atoms $rem)))
+           ;($_ (println! (remaining-atoms $rem)))
         )
             (remove-atoms' $space $tail)
         )
@@ -30,7 +32,7 @@
 (= (remove-occurrences $space $pattern)
    	(let* (
             ($atoms (collapse (match $space $pattern $pattern)))
-            ($_ (println! (atoms-to-remove $atoms)))
+            ;($_ (println! (atoms-to-remove $atoms)))
            ) 
 	  	(remove-atoms' $space $atoms)))
 
@@ -101,7 +103,7 @@
 		       	((demand $maxName $maxVal) $maxDemand)
 		       	(((demand $currName $currVal) $tail) (decons-atom $demands))
 		       )
-		  	(if (>= $currVal $maxVal)
+		  	(if (<= $currVal $maxVal)
 			  	(demandSelector' $tail (demand $currName $currVal))
 				(demandSelector' $tail $maxDemand)
 			)
@@ -192,6 +194,17 @@
 	)))
 
 
+(: isGoalMet? (-> Expression Goal Bool))
+(= (isGoalMet? $actions $goal)
+	(let* (
+	       ($length (size-atom $actions))
+	       ($lastAction (index-atom $actions (- $length 1)))
+	       ($rules' (findRulesWithAction &kb $lastAction))
+           ;($_ (println! (rulesinGoal $rules')))
+	)
+		 (isGoalMet' $rules' $goal)
+	)	
+)
 
 
 
@@ -201,9 +214,9 @@
 		False
 		(let* (
 			(($rule $tail) (decons-atom $rules))
-            ($_ (println! (isGoalMetInnerRule $rule tail $tail)))
+            ;($_ (println! (isGoalMetInnerRule $rule tail $tail)))
 			($ruleGoal (extractGoalFromRule $rule))
-            ($_ (println! (this is the goal $ruleGoal)))
+            ;($_ (println! (this is the goal $ruleGoal)))
 		)
 		  (if (== $ruleGoal $goal)
 		    	True
@@ -241,25 +254,38 @@
 	)
 )
 
-
-
-
-;; This function implements the kb-initializer for the open-psi loop to work
-(: kb-initializer (-> Grounded Expression))
-(= (kb-initializer $kb)
-   (let* (
-	  	 ($rules (collapse (get-atoms &ruleSpace)))
-		($modulators (collapse (get-atoms &modulator-space)))
-		($demands (collapse (get-atoms &demandspace)))
-		($partialKb (union-atom $rules $modulators))
-		($kbExp (union-atom $partialKb $demands))
-		($_ (collapse (add-atoms $kb $kbExp)))
-	)
-     		()
-    
-	)
+(= (get-goal-value (Goal $goal_name $goal_value $target_goal_value))
+    $goal_value
+)
+(= (find-best-goal' $related_goals $max_value $best_goal)
+    (if (== $related_goals ()) $best_goal 
+        (let* (
+            ($current-goal (car-atom $related_goals))
+            ($next_goals (cdr-atom $related_goals))
+            ($current_goal_value (get-goal-value $current-goal))
+            ; (() println! (current-goal-value = $current_goal_value))
+            ; (() (println! (currentgoal= $current-goal , current-goal-value= $current_goal_value , next-goals= $next_goals)))
+        )
+            (if (> $current_goal_value $max_value)
+                (find-best-goal' $next_goals $current_goal_value $current-goal)
+                (find-best-goal' $next_goals $max_value $best_goal)
+            )
+        )
+    )
 )
 
+(= (find-best-goal $goals)
+    (find-best-goal' $goals 0 ())
+)
+(= (goal-selector $space $demand)
+    (let* (
+        ($relatedGoals (collapse (get-type-space $space $demand)))
+         (() (println! (related-goals= $relatedGoals)))
+        ($selectedGoal (find-best-goal $relatedGoals))
+    )
+    $selectedGoal
+)
+)
 
 (: psi-agent-loop (-> Symbol Grounded Expression)) 
 (= (psi-agent-loop $state $kb)
@@ -267,38 +293,38 @@
 	    ($demands (queryAll $kb demand))
         ($_ (println! (demands $demands)))
 		($currDemand (demandSelector $demands))
-        ($_ (println! (dmSelector $currDemand)))
-        ($goalObj (goalSelector $currDemand))
-		((Goal $goal $goalVal1 $goalVal2) $goalObj) 
-        ($_ (println! (goal-psi $goal)))
-		($actions (planner &ruleSpace $state $goal))
-        ($_ (println! (actions-psi-to-apply $actions goal $goal demand $currDemand)))
-		($applyValue (applyActions $actions $goalObj $currDemand)) 
-        ($_ (println! (applyValue $applyValue)))
-		($competenceDemand (getDemandByName &demandspace competence)) 
-        ($_ (println! (competence-psi $competenceDemand)))
-		($affiliationDemand (getDemandByName &demandspace affiliation))
-		($energyDemand (getDemandByName &demandspace energy))
-    
-        ($_ (println! (demandValues $competenceDemand $affiliationDemand $energyDemand)))
-		($modUpdate (modulatorUpdaterAgent &modulator-space $competenceDemand $affiliationDemand $energyDemand))
-
-        ($_ (println! (modUpdate $modUpdate modulatorValues (collapse (get-atoms &modulator-space))))) 
-		($happinessValue (happinessFeelingUpdater &modulator-space))
-        ($_ (println! (happinessVal $happinessValue)))
-		($sadnessValue (sadnessFeelingUpdater &modulator-space))
-        ;; ($_ (println! (sadnessVal $sadnessValue)))
-		($angerValue (angerFeelingUpdater &modulator-space))
-        ;; ($_ (println! (angerVal $angerValue)))
-		($fearValue (fearFeelingUpdater &modulator-space))
-		($excitementValue (excitementFeelingUpdater &modulator-space))
-		($loveValue (loveFeelingUpdater &modulator-space))
-		($hateValue (hateFeelingUpdater &modulator-space))
-		($gratitude (gratitudeFeelingUpdater &modulator-space))
-        ;($_ (println! (happinessValue $happinessValue angerValue $angerValue sadnessValue $sadnessValue angerValue $angerValue fearValue $fearValue)))
- 	    ($_ (update-all modulator &modulator-space $kb))
-;; ;        
-        ($_ (update-all demand &demandspace $kb))
+        ;($_ (println! (dmSelector $currDemand)))
+    ($goalObj (goal-selector $kb $currDemand))
+		;((Goal $goal $goalVal1 $goalVal2) $goalObj) 
+        ($_ (println! (goal-psi $goalObj)))
+;		($actions (planner $kb $state $goal))
+;        ;($_ (println! (actions-psi-to-apply $actions goal $goal demand $currDemand)))
+;		($applyValue (applyActions $actions $goalObj $currDemand)) 
+;        ;($_ (println! (applyValue $applyValue)))
+;		($competenceDemand (getDemandByName &demandspace competence)) 
+;        ;($_ (println! (competence-psi $competenceDemand)))
+;		($affiliationDemand (getDemandByName &demandspace affiliation))
+;		($energyDemand (getDemandByName &demandspace energy))
+;
+;        ;($_ (println! (demandValues $competenceDemand $affiliationDemand $energyDemand)))
+;		($modUpdate (modulatorUpdaterAgent &modulator-space $competenceDemand $affiliationDemand $energyDemand))
+;
+;        ;($_ (println! (modUpdate $modUpdate modulatorValues (collapse (get-atoms &modulator-space))))) 
+;		($happinessValue (happinessFeelingUpdater &modulator-space))
+;        ;($_ (println! (happinessVal $happinessValue)))
+;		($sadnessValue (sadnessFeelingUpdater &modulator-space))
+;        ;; ($_ (println! (sadnessVal $sadnessValue)))
+;		($angerValue (angerFeelingUpdater &modulator-space))
+;        ;; ($_ (println! (angerVal $angerValue)))
+;		($fearValue (fearFeelingUpdater &modulator-space))
+;		($excitementValue (excitementFeelingUpdater &modulator-space))
+;		($loveValue (loveFeelingUpdater &modulator-space))
+;		($hateValue (hateFeelingUpdater &modulator-space))
+;		($gratitude (gratitudeFeelingUpdater &modulator-space))
+;        ;($_ (println! (happinessValue $happinessValue angerValue $angerValue sadnessValue $sadnessValue angerValue $angerValue fearValue $fearValue)))
+; 	    ($_ (update-all modulator &modulator-space $kb))
+;;; ;        
+;        ($_ (update-all demand &demandspace $kb))
 
 	)
 	 (happinessValue $happinessValue sadnessValue $sadnessValue angerValue $angerValue fearValue $fearValue gratitudeValue $gratitude) 

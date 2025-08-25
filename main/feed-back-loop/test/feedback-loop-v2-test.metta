@@ -14,8 +14,42 @@
 !(import! &self utilities-module:utils)
 
 !(bind! &kb (new-space))
-!(addRulesToSpace &ruleSpace) 
+!(bind! &modulator-space (new-space))
+!(bind! &demandspace (new-space))
+!(bind! &ruleSpace (new-space))
+
+(= (addRulesToSpaceV2 $space) (
+    add-reduct $space (superpose (
+        (addGoal (found_target) 0.5 () $space)
+        (addGoal (init) 0 1 $space)
+        (addGoal (hold_item) 1 1 $space)
+        (addRule $space r1 ((init)) (explore) (found_target) (TTV 0 (STV 1.0 1.0)))
+        (addRule $space r2 ((found_target)) (pick_item) (hold_item) (TTV 0 (STV 1.0 1.0)))
+    ))
+))
+
+;; Populate the spaces
 !(insert-modulators &modulator-space)
+!(addRulesToSpaceV2 &ruleSpace)
+!(addDemand &demandspace energy 0.6)
+!(addDemand &demandspace affiliation 0.5)
+!(addDemand &demandspace competence 0.2)
+
+(= (extractGoalFromRuleV2 $rule)
+    (let (: $handle (IMPLICATION_LINK (AND_LINK ($context $action)) $goal)) $rule $goal)
+)
+
+(= (findRulesWithActionV2 $space $action)
+    (collapse (match $space (: $handle (IMPLICATION_LINK (AND_LINK ($context $action)) $goal))
+        (: $handle (IMPLICATION_LINK (AND_LINK ($context $action)) $goal))
+    ))
+)
+
+(=(reverse $list $acc)  
+    (if(== $list ()) $acc
+    (let ($head $tail ) (decons-atom $list) (reverse $tail (cons-atom $head $acc) ))
+    )
+)
 
 (: remove-atoms' (-> hyperon::space::DynSpace Expression Expression))
 (= (remove-atoms' $space $expression)
@@ -202,9 +236,10 @@
 		False
 		(let* (
 			(($rule $tail) (decons-atom $rules))
-            ($_ (println! (isGoalMetInnerRule $rule tail $tail)))
-			($ruleGoal (extractGoalFromRule $rule))
-            ($_ (println! (this is the goal $ruleGoal)))
+            ;($_ (println! (isGoalMetInnerRule $rule tail $tail)))
+			($ruleGoal (extractGoalFromRuleV2 $rule))
+			((Goal $g $tv $sgv) $goal)
+            ($_ (println! (this is the goal $ruleGoal = $g)))
 		)
 		  (if (== $ruleGoal $goal)
 		    	True

@@ -1,8 +1,7 @@
-!(bind! &modulator-space (new-space))
 (: Modulator Type)
 (: modulator (-> Symbol Number Modulator))
 
-(: insert-modulators (-> Atom empty))
+;(: insert-modulators (-> Atom empty))
 (= (insert-modulators $space) (add-reduct $space (superpose (
         (modulator arousal 0.5)
         (modulator positive-valence 0.5)
