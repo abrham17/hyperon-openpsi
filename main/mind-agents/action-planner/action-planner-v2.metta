@@ -11,7 +11,7 @@
             ($applicableActions (collapse (match $ruleSpace 
                                                  (: $handle (IMPLICATION_LINK (AND_LINK (($initialState) $action)) $g))
                                                  $action))) ;get applicable actions and.
-            ($untriedActions (filterUntriedRules $applicableActions $tested () )) ;Filter out the ones that already have been tested.
+            ($untriedActions (collapse (filterUntriedRules $applicableActions $tested) )) ;Filter out the ones that already have been tested.
             ;(() (println! ( tested --> $tested untried --> $untriedActions applicable --> $applicableActions plan --> $plan)))
           )
        (if (== $untriedActions ()) ;No untested actions, return () to back
@@ -64,17 +64,9 @@
      )
    )
    
-(= (filterUntriedRules $actions $tested $acc)
-     (if (== $actions ())
-      $acc
-      (let ($head $tail) (decons-atom $actions)
-        (if (isMember $head $tested)
-          (filterUntriedRules $tail $tested $acc)
-          (filterUntriedRules $tail $tested (cons-atom $head $acc))
-          )
-       )
-    )
-   )
+(= (filterUntriedRules $actions $tested)
+    ( let $x (superpose $actions) (if (isMember $x $tested) (empty) $x) )
+)
 
 (= (findMinDistance $newStates $goal $minDistance $bestPair $ruleSpace)
    (if (== $newStates ())

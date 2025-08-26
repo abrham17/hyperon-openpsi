@@ -1,4 +1,3 @@
-!(bind! &demandspace (new-space))
 (: Demand Type)
 (: SkipDemand Type)
 ; (: demand (-> Symbol Number Demand))
@@ -65,7 +64,7 @@
 )
 (= (getDemandByName $space $name) (match $space (demand $name $x) (demand $name $x)))
 
-; Fixed demandDecay function to properly take space parameter
+
 (= (demandDecay $space $demand $value)
     (let* (
         ($oldValue  (match $space (demand $demand $oldValue) $oldValue))
@@ -120,13 +119,4 @@
 
     ))
 )
-!(addDemand &demandspace energy 0.6)
-!(addDemand &demandspace affiliation 0.5)
-!(addDemand &demandspace competence 0.4)
-!(skipDemand &demandspace competence)
-!(getEnabledDemands &demandspace)
-!(decaySkippedDemands &demandspace 0.1)
-!(decayAllDemands &demandspace 0.05)
-!(decayDemandsWithDifferentRates &demandspace 0.05 0.05)
 
-!(get-atoms &demandspace)
