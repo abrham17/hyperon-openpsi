@@ -73,9 +73,10 @@
     )
     (if (>= $newValue 0)
         (setDemandValue $space $demand $newValue)
-        (let $demandAtom (match $space (demand $demand $oldValue) (demand $demand $oldValue))
-        (do
-            (remove-atom $space $demandAtom)
+        (let* (($demandAtom (match $space (demand $demand $oldValue) (demand $demand $oldValue)))
+                (() (remove-atom $space $demandAtom))
+                )
+        (
             (remove-atom $space (skip $demand))
         )
     )
