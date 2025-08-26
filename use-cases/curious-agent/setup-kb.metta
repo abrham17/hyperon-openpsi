@@ -118,53 +118,46 @@
     (add-reduct $space 
      (superpose 
       (
-        (: (demand certainty 0.1) (Goal Send-Greeting 1.0 1.0)) ; r1: Initiating dialogue requires certainty to start engagement.
-        (: (demand certainty 0.1) (Goal Receive-User-Response 1.0 1.0)) ; r2: Eliciting response aligns with certainty, matches example.
-        (: (demand competence 0.9) (Goal Understand-Initial-Mood 1.0 1.0)) ; r3a: Interpreting mood requires understanding, fits competence.
-        (: (demand competence 0.9) (Goal Understand-Initial-Context 1.0 1.0)) ; r3b: Interpreting context involves analysis, fits competence.
-        (: (demand energy 0.9) (Goal Explore-Mood-Details 1.0 1.0)) ; r4: Probing mood is emotionally engaging, fits energy.
-        (: (demand competence 0.9) (Goal Ask-Daily-Activities 1.0 1.0)) ; r5, r6: Requesting activities involves gathering info, fits competence.
-        (: (demand competence 0.9) (Goal Learn-Activity-Details 1.0 1.0)) ; r7: Collecting details requires learning, fits competence.
-        (: (demand competence 0.9) (Goal Understand-Hobby-Preferences 1.0 1.0)) ; r8a: Exploring hobbies involves understanding, fits competence.
-        (: (demand competence 0.9) (Goal Understand-Future-Goals 1.0 1.0)) ; r8b: Exploring goals requires analysis, fits competence.
-        (: (demand integrity 1.0) (Goal Summarize-User-Preferences 1.0 1.0)) ; r9, r10: Summarizing preferences ensures accurate synthesis, fits integrity.
-        (: (demand competence 0.9) (Goal Understand-User-Interests 1.0 1.0)) ; r11: Finalizing interest understanding requires competence.
-        (: (demand energy 0.9) (Goal Off-Topic-Discussion 1.0 1.0)) ; d1, d5: Discussing random topics requires engagement, fits energy.
-        (: (demand energy 0.9) (Goal Engage-User-Fun 1.0 1.0)) ; d2: Sharing a joke is engaging, fits energy.
-        (: (demand energy 0.9) (Goal Provide-Feedback 1.0 1.0)) ; d4: Offering advice involves active engagement, fits energy.
-        (: (demand energy 0.9) (Goal Engage-User-Story 1.0 1.0)) ; d7: Sharing a story is emotionally engaging, fits energy.
-        (: (demand competence 0.9) (Goal Ask-Recent-Events 1.0 1.0)) ; r19: Inquiring events involves gathering info, fits competence.
-        (: (demand competence 0.9) (Goal Learn-Recent-Event-Details 1.0 1.0)) ; r20: Collecting event details requires learning, fits competence.
-        (: (demand competence 0.9) (Goal Understand-Event-Impact 1.0 1.0)) ; r21: Assessing impact involves analysis, fits competence.
-        (: (demand energy 0.9) (Goal Explore-Event-Emotions 1.0 1.0)) ; r22: Probing emotions is engaging, matches example energy demand.
-        (: (demand competence 0.9) (Goal Understand-Event-Significance 1.0 1.0)) ; r23: Assessing significance requires analysis, fits competence.
-        (: (demand energy 0.9) (Goal Propose-Related-Topics 1.0 1.0)) ; r24: Suggesting topics involves engagement, fits energy.
-        (: (demand certainty 0.1) (Goal Receive-Topic-Choice 1.0 1.0)) ; r25: Eliciting topic choice aligns with receiving response, fits certainty.
-        (: (demand energy 0.9) (Goal Discuss-Chosen-Topic 1.0 1.0)) ; r26: Discussing chosen topic requires engagement, fits energy.
-        (: (demand competence 0.9) (Goal Deepen-Topic-Understanding 1.0 1.0)) ; r27: Deepening understanding requires analysis, fits competence.
-        (: (demand competence 0.9) (Goal Learn-Specific-Topic-Details 1.0 1.0)) ; r28: Learning details involves competence, matches example.
-        (: (demand competence 0.9) (Goal Evaluate-Topic-Interest 1.0 1.0)) ; r29: Assessing interest requires analysis, fits competence.
-        (: (demand certainty 0.9) (Goal Confirm-User-Engagement 1.0 1.0)) ; r30: Checking engagement aligns with certainty, matches example.
-        (: (demand energy 0.9) (Goal Re-engage-User 1.0 1.0)) ; r31: Re-engaging user requires energy, matches example.
-        (: (demand energy 0.9) (Goal Propose-New-Topic 1.0 1.0)) ; r32: Suggesting new topic involves engagement, fits energy.
-        (: (demand certainty 0.1) (Goal Receive-New-Topic-Choice 1.0 1.0)) ; r33: Eliciting new topic choice aligns with certainty.
-        (: (demand energy 0.9) (Goal Discuss-New-Topic 1.0 1.0)) ; r34: Discussing new topic requires engagement, fits energy.
-        (: (demand competence 0.9) (Goal Learn-New-Topic-Details 1.0 1.0)) ; r35: Learning new topic details involves competence.
-        (: (demand competence 0.9) (Goal Evaluate-Topic-Relevance 1.0 1.0)) ; r36: Assessing relevance requires analysis, fits competence.
-        (: (demand competence 0.9) (Goal Relate-To-User-Preferences 1.0 1.0)) ; r37: Connecting to preferences involves understanding, fits competence.
-        (: (demand certainty 0.9) (Goal Confirm-Topic-Relevance 1.0 1.0)) ; r38: Confirming relevance aligns with certainty, matches example.
-        (: (demand energy 0.9) (Goal Deepen-Topic-Exploration 1.0 1.0)) ; r39: Deepening exploration requires engagement, matches example.
-        (: (demand competence 0.9) (Goal Learn-Detailed-Topic-Insights 1.0 1.0)) ; r40: Learning detailed insights involves competence.
-        (: (demand competence 0.9) (Goal Understand-Topic-Insights 1.0 1.0)) ; r41: Understanding insights requires analysis, matches example.
-        (: (demand integrity 1.0) (Goal Summarize-Topic-Insights 1.0 1.0)) ; r42: Summarizing insights ensures accuracy, fits integrity.
-        (: (demand integrity 1.0) (Goal Confirm-Insight-Accuracy 1.0 1.0)) ; r43: Confirming accuracy aligns with integrity, matches example.
-        (: (demand integrity 1.0) (Goal Refine-Topic-Understanding 1.0 1.0)) ; r44: Refining understanding ensures accuracy, matches example.
-        (: (demand competence 0.9) (Goal Identify-Related-Interests 1.0 1.0)) ; r45: Exploring related interests involves analysis, fits competence.
-        (: (demand competence 0.9) (Goal Learn-Preference-Details 1.0 1.0)) ; r46: Learning preference details requires competence.
-        (: (demand competence 0.9) (Goal Understand-Preference-Strength 1.0 1.0)) ; r47: Assessing preference strength involves analysis, fits competence.
-        (: (demand energy 0.9) (Goal Explore-Preference-Motivations 1.0 1.0)) ; r48: Exploring motivations requires engagement, fits energy.
-        (: (demand integrity 1.0) (Goal Summarize-Preference-Insights 1.0 1.0)) ; r49: Summarizing preferences ensures accuracy, fits integrity.
-        (: (demand integrity 1.0) (Goal Receive-Preference-Feedback 1.0 1.0)) ; r50: Checking feedback ensures accurate understanding, fits integrity.
+        
+      (: integrity (Goal Summarize-User-Preferences 1.0 1.0)) ; r9, r10: Summarizing preferences ensures accurate synthesis, fits integrity.
+      (: competence (Goal Understand-User-Interests 1.0 1.0)) ; r11: Finalizing interest understanding requires competence.
+      (: energy (Goal Off-Topic-Discussion 1.0 1.0)) ; d1, d5: Discussing random topics requires engagement, fits energy.
+      (: energy (Goal Engage-User-Fun 1.0 1.0)) ; d2: Sharing a joke is engaging, fits energy.
+      (: energy (Goal Provide-Feedback 1.0 1.0)) ; d4: Offering advice involves active engagement, fits energy.
+      (: energy (Goal Engage-User-Story 1.0 1.0)) ; d7: Sharing a story is emotionally engaging, fits energy.
+      (: competence (Goal Ask-Recent-Events 1.0 1.0)) ; r19: Inquiring events involves gathering info, fits competence.
+      (: competence (Goal Learn-Recent-Event-Details 1.0 1.0)) ; r20: Collecting event details requires learning, fits competence.
+      (: competence (Goal Understand-Event-Impact 1.0 1.0)) ; r21: Assessing impact involves analysis, fits competence.
+      (: energy (Goal Explore-Event-Emotions 1.0 1.0)) ; r22: Probing emotions is engaging, matches example energy demand.
+      (: competence (Goal Understand-Event-Significance 1.0 1.0)) ; r23: Assessing significance requires analysis, fits competence.
+      (: energy (Goal Propose-Related-Topics 1.0 1.0)) ; r24: Suggesting topics involves engagement, fits energy.
+      (: certainty (Goal Receive-Topic-Choice 1.0 1.0)) ; r25: Eliciting topic choice aligns with receiving response, fits certainty.
+      (: energy (Goal Discuss-Chosen-Topic 1.0 1.0)) ; r26: Discussing chosen topic requires engagement, fits energy.
+      (: competence (Goal Deepen-Topic-Understanding 1.0 1.0)) ; r27: Deepening understanding requires analysis, fits competence.
+      (: competence (Goal Learn-Specific-Topic-Details 1.0 1.0)) ; r28: Learning details involves competence, matches example.
+      (: competence (Goal Evaluate-Topic-Interest 1.0 1.0)) ; r29: Assessing interest requires analysis, fits competence.
+      (: certainty (Goal Confirm-User-Engagement 1.0 1.0)) ; r30: Checking engagement aligns with certainty, matches example.
+      (: energy (Goal Re-engage-User 1.0 1.0)) ; r31: Re-engaging user requires energy, matches example.
+      (: energy (Goal Propose-New-Topic 1.0 1.0)) ; r32: Suggesting new topic involves engagement, fits energy.
+      (: certainty (Goal Receive-New-Topic-Choice 1.0 1.0)) ; r33: Eliciting new topic choice aligns with certainty.
+      (: energy (Goal Discuss-New-Topic 1.0 1.0)) ; r34: Discussing new topic requires engagement, fits energy.
+      (: competence (Goal Learn-New-Topic-Details 1.0 1.0)) ; r35: Learning new topic details involves competence.
+      (: competence (Goal Evaluate-Topic-Relevance 1.0 1.0)) ; r36: Assessing relevance requires analysis, fits competence.
+      (: competence (Goal Relate-To-User-Preferences 1.0 1.0)) ; r37: Connecting to preferences involves understanding, fits competence.
+      (: certainty (Goal Confirm-Topic-Relevance 1.0 1.0)) ; r38: Confirming relevance aligns with certainty, matches example.
+      (: energy (Goal Deepen-Topic-Exploration 1.0 1.0)) ; r39: Deepening exploration requires engagement, matches example.
+      (: competence (Goal Learn-Detailed-Topic-Insights 1.0 1.0)) ; r40: Learning detailed insights involves competence.
+      (: competence (Goal Understand-Topic-Insights 1.0 1.0)) ; r41: Understanding insights requires analysis, matches example.
+      (: integrity (Goal Summarize-Topic-Insights 1.0 1.0)) ; r42: Summarizing insights ensures accuracy, fits integrity.
+      (: integrity (Goal Confirm-Insight-Accuracy 1.0 1.0)) ; r43: Confirming accuracy aligns with integrity, matches example.
+      (: integrity (Goal Refine-Topic-Understanding 1.0 1.0)) ; r44: Refining understanding ensures accuracy, matches example.
+      (: competence (Goal Identify-Related-Interests 1.0 1.0)) ; r45: Exploring related interests involves analysis, fits competence.
+      (: competence (Goal Learn-Preference-Details 1.0 1.0)) ; r46: Learning preference details requires competence.
+      (: competence (Goal Understand-Preference-Strength 1.0 1.0)) ; r47: Assessing preference strength involves analysis, fits competence.
+      (: energy (Goal Explore-Preference-Motivations 1.0 1.0)) ; r48: Exploring motivations requires engagement, fits energy.
+      (: integrity (Goal Summarize-Preference-Insights 1.0 1.0)) ; r49: Summarizing preferences ensures accuracy, fits integrity.
+      (: integrity (Goal Receive-Preference-Feedback 1.0 1.0)) ; r50: Checking feedback ensures accurate understanding, fits integrity.
+
     )
     )
   )

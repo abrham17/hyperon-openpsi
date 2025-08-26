@@ -8,6 +8,7 @@
 !(import! &self hyperon-openpsi:main:demand:demand)
 !(import! &self hyperon-openpsi:main:rules:rule)
 !(import! &self hyperon-openpsi:psi-utilities:psi_utils)
+!(import! &self hyperon-openpsi:psi-utilities:normalization)
 
 !(register-module! ../../../utilities-module)
 !(import! &self utilities-module:utils)
