@@ -12,6 +12,7 @@
 !(skipDemand &demandSpace competence)
 
 !(assertEqual (getDemandByName &demandSpace energy) (demand energy 0.6))
+
 !(assertEqual (exists-In &demandSpace (demand energy 0.6)) True)
 !(assertEqual (exists-In &demandSpace (demand competence 0.2)) True)
 !(assertEqual (getAllDemands &demandSpace )  ((demand energy 0.6) (demand affiliation 0.5) (demand competence 0.2)))
@@ -24,3 +25,13 @@
 !(assertEqual (fetch-demand &demandSpace energy)  (demand energy 0.8))
 !(assertEqual (fetch-demand-val &demandSpace energy) 0.8)
 !(assertEqual (getEnabledDemands &demandSpace) ((demand energy 0.8) (demand affiliation 0.5) ))
+
+!(bind! &decayspace (new-space))
+!(addDemand &decayspace energy 0.6)
+!(addDemand &decayspace affiliation 0.5)
+!(addDemand &decayspace competence 0.4)
+!(skipDemand &decayspace competence)
+!(getEnabledDemands &decayspace)
+!(decaySkippedDemands &decayspace 0.1)
+!(decayAllDemands &decayspace 0.05)
+!(get-atoms &decayspace)

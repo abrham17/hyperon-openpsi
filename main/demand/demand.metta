@@ -64,3 +64,59 @@
 )
 (= (getDemandByName $space $name) (match $space (demand $name $x) (demand $name $x)))
 
+
+(= (demandDecay $space $demand $value)
+    (let* (
+        ($oldValue  (match $space (demand $demand $oldValue) $oldValue))
+        ($newValue (- $oldValue $value))
+    )
+    (if (>= $newValue 0)
+        (setDemandValue $space $demand $newValue)
+        (let* (($demandAtom (match $space (demand $demand $oldValue) (demand $demand $oldValue)))
+                (() (remove-atom $space $demandAtom))
+                )
+        (
+            (remove-atom $space (skip $demand))
+        )
+    )
+    )
+))
+
+; New function to apply decay only to skipped demands
+(= (decaySkippedDemands $space $decayValue)
+    (let* (
+        ($skippedDemandNames (collapse (match $space (skip $x) $x)))
+        ($skippedDemands (collapse (match $space (demand $x $value) (demand $x $value))))
+    )
+    (if (== (size-atom $skippedDemands) 0 )
+        (There is no skipped demand) 
+        (demandDecay $space (superpose $skippedDemandNames) $decayValue)
+    ))
+)
+; New function to apply decay to all demands (both enabled and skipped)
+(= (decayAllDemands $space $decayValue)
+    (let* (
+        ($allDemands (getAllDemands $space))
+        ($demandNames (collapse (match $space (demand $x $_) $x)))
+    )
+    (if (== (size-atom $allDemands) 0 )
+        (No demands in the space)
+        (demandDecay $space (superpose $demandNames) $decayValue)
+    ))
+)
+
+; New function to apply different decay rates to enabled vs skipped demands
+(= (decayDemandsWithDifferentRates $space $enabledDecayRate $skippedDecayRate)
+    (let* (
+        ($enabledDemandNames (getEnabledDemands $space))
+        ($enabledDemands (collapse (unify $enabledDemandNames (demand $x $_) $x ())))
+        ($skippedDemandNames (collapse (match $space (skip $x) $x)))
+        ($_ (decaySkippedDemands $space $skippedDecayRate))
+    )
+    (if (== (size-atom $enabledDemands) 0)
+        (There is no skipped demand)
+        (demandDecay $space (superpose $enabledDemands) $enabledDecayRate)
+
+    ))
+)
+
