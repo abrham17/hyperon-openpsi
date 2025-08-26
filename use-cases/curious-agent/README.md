@@ -38,15 +38,9 @@ This project implements a "Curious Agent" that leverages the Hyperon symbolic AI
 
 4. **Set up your environment variables:**
 
-    Create a file named `.env` in the root of the project directory and add your Gemini API key:
-
     ```
-    GEMINI_API_KEY="your_api_key_here"
+    export GEMINI_API_KEY="your_api_key_here"
     ```
-
-### MeTTa Setup
-
-_(Instructions for setting up the MeTTa environment will be added here.)_
 
 ## Usage
 
