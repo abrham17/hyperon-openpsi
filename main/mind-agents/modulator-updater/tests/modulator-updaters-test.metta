@@ -7,6 +7,7 @@
 !(import! &self utilities-module:utils)
 !(import! &self hyperon-openpsi:psi-utilities:psi_utils)
 !(import! &self hyperon-openpsi:main:demand:demand)
+!(import! &self hyperon-openpsi:psi-utilities:normalization)
 
 !(addDemand &demandspace energy 0.6)
 !(addDemand &demandspace affiliation 0.5)
