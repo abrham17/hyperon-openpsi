@@ -10,9 +10,17 @@
 ;; !(import! &self hyperon-openpsi:main:feed-back-loop:feed-back-helpers)
 !(import! &self hyperon-openpsi:main:mind-agents:action-planner:action-planner-v1)
 !(import! &self hyperon-openpsi:main:mind-agents:feeling-updater:feeling-updaters)
+!(import! &self hyperon-openpsi:psi-utilities:normalization)
 !(bind! &kb (new-space))
-!(addRulesToSpace &ruleSpace) 
+!(bind! &modulator-space (new-space))
+!(bind! &demandspace (new-space))
+
+!(addRulesToTestSpace &ruleSpace) 
 !(insert-modulators &modulator-space)
+
+!(addDemand &demandspace energy 0.6)
+!(addDemand &demandspace affiliation 0.5)
+!(addDemand &demandspace competence 0.2)
 
 
 

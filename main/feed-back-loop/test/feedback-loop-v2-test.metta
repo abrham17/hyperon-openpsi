@@ -8,12 +8,15 @@
 !(import! &self hyperon-openpsi:main:demand:demand)
 !(import! &self hyperon-openpsi:main:rules:rule)
 !(import! &self hyperon-openpsi:psi-utilities:psi_utils)
+!(import! &self hyperon-openpsi:psi-utilities:normalization)
 
 !(register-module! ../../../utilities-module)
 !(import! &self utilities-module:utils)
 
 ;; Create the necessary spaces
 !(bind! &kb (new-space))
+!(bind! &modulator-space (new-space))
+!(bind! &demandspace (new-space))
 !(bind! &ruleSpace (new-space))
 
 (= (addRulesToSpaceV2 $space) (
@@ -29,6 +32,9 @@
 ;; Populate the spaces
 !(insert-modulators &modulator-space)
 !(addRulesToSpaceV2 &ruleSpace)
+!(addDemand &demandspace energy 0.6)
+!(addDemand &demandspace affiliation 0.5)
+!(addDemand &demandspace competence 0.2)
 
 (= (extractGoalFromRuleV2 $rule)
     (let (: $handle (IMPLICATION_LINK (AND_LINK ($context $action)) $goal)) $rule $goal)
@@ -209,7 +215,7 @@
 		False
 		(let* (
 			(($rule $tail) (decons-atom $rules))
-            ($_ (println! (isGoalMetInnerRule $rule tail $tail)))
+            ;($_ (println! (isGoalMetInnerRule $rule tail $tail)))
 			($ruleGoal (extractGoalFromRuleV2 $rule))
 			((Goal $g $tv $sgv) $goal)
             ($_ (println! (this is the goal $ruleGoal = $g)))

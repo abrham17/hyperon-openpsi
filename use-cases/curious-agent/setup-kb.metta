@@ -1,11 +1,5 @@
-!(register-module! ../../../hyperon-openpsi)
-!(import! &self utils) 
-!(import! &self hyperon-openpsi:main:feed-back-loop:feed-back-loop)
-
-;; TODO: move this to a test file . 
-!(bind! &RS (new-space))
-(= (populateRuleSpace_) 
-      (add-reduct &RS (superpose (
+(= (populateRuleSpace $ruleSpace) 
+      (add-reduct $ruleSpace (superpose (
         ((: r1 ((TTV 1 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Conversation-Started 0.9 0.6) initiate-dialogue)) (Goal Send-Greeting 1.0 1.0)))) 4)
         ((: r2 ((TTV 2 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Send-Greeting 0.9 0.6) elicit-response)) (Goal Receive-User-Response 1.0 1.0)))) 7)
         ((: r3a ((TTV 3 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Receive-User-Response 0.9 0.6) interpret-mood)) (Goal Understand-Initial-Mood 1.0 1.0)))) 8)
@@ -88,80 +82,97 @@
         ; ((: r78 ((TTV 78 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Learn-Related-Goal-Details 0.9 0.6) assess-goal-relevance)) (Goal Understand-Related-Goal-Relevance 1.0 1.0)))) 4)
         ; ((: r79 ((TTV 79 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Related-Goal-Relevance 0.9 0.6) summarize-related-goals)) (Goal Summarize-Related-Goal-Insights 1.0 1.0)))) 9)
         ; ((: r80 ((TTV 80 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Summarize-Related-Goal-Insights 0.9 0.6) check-goal-feedback)) (Goal Confirm-Related-Goal-Accuracy 1.0 1.0)))) 5)
-        ; ((: r81 ((TTV 81 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Confirm-Related-Goal-Accuracy 0.9 0.6) refine-goal-insights)) (Goal Refine-Related-Goal-Understanding 1.0 1.0)))) 7)
-        ; ((: r82 ((TTV 82 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Refine-Related-Goal-Understanding 0.9 0.6) explore-user-values)) (Goal Identify-User-Values 1.0 1.0)))) 8)
-        ; ((: r83 ((TTV 83 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Identify-User-Values 0.9 0.6) ask-value-questions)) (Goal Learn-Value-Details 1.0 1.0)))) 6)
-        ; ((: r84 ((TTV 84 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Learn-Value-Details 0.9 0.6) assess-value-importance)) (Goal Understand-Value-Importance 1.0 1.0)))) 4)
-        ; ((: r85 ((TTV 85 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Value-Importance 0.9 0.6) explore-value-motivations)) (Goal Explore-Value-Motivations 1.0 1.0)))) 9)
-        ; ((: r86 ((TTV 86 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Explore-Value-Motivations 0.9 0.6) summarize-values)) (Goal Summarize-Value-Insights 1.0 1.0)))) 5)
-        ; ((: r87 ((TTV 87 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Summarize-Value-Insights 0.9 0.6) check-value-accuracy)) (Goal Confirm-Value-Accuracy 1.0 1.0)))) 7)
-        ; ((: r88 ((TTV 88 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Confirm-Value-Accuracy 0.9 0.6) refine-value-understanding)) (Goal Refine-Value-Understanding 1.0 1.0)))) 8)
-        ; ((: r89 ((TTV 89 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Refine-Value-Understanding 0.9 0.6) explore-related-values)) (Goal Identify-Related-Values 1.0 1.0)))) 6)
-        ; ((: r90 ((TTV 90 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Identify-Related-Values 0.9 0.6) ask-related-value-questions)) (Goal Learn-Related-Value-Details 1.0 1.0)))) 4)
-        ; ((: r91 ((TTV 91 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Learn-Related-Value-Details 0.9 0.6) assess-value-relevance)) (Goal Understand-Related-Value-Relevance 1.0 1.0)))) 9)
-        ; ((: r92 ((TTV 92 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Related-Value-Relevance 0.9 0.6) summarize-related-values)) (Goal Summarize-Related-Value-Insights 1.0 1.0)))) 5)
-        ; ((: r93 ((TTV 93 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Summarize-Related-Value-Insights 0.9 0.6) check-value-feedback)) (Goal Confirm-Related-Value-Accuracy 1.0 1.0)))) 7)
-        ; ((: r94 ((TTV 94 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Confirm-Related-Value-Accuracy 0.9 0.6) refine-value-insights)) (Goal Refine-Related-Value-Understanding 1.0 1.0)))) 8)
-        ; ((: r95 ((TTV 95 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Refine-Related-Value-Understanding 0.9 0.6) explore-user-challenges)) (Goal Identify-User-Challenges 1.0 1.0)))) 6)
-        ; ((: r96 ((TTV 96 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Identify-User-Challenges 0.9 0.6) ask-challenge-questions)) (Goal Learn-Challenge-Details 1.0 1.0)))) 4)
-        ; ((: r97 ((TTV 97 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Learn-Challenge-Details 0.9 0.6) assess-challenge-impact)) (Goal Understand-Challenge-Impact 1.0 1.0)))) 9)
-        ; ((: r98 ((TTV 98 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Challenge-Impact 0.9 0.6) explore-challenge-reasons)) (Goal Explore-Challenge-Reasons 1.0 1.0)))) 5)
-        ; ((: r99 ((TTV 99 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Explore-Challenge-Reasons 0.9 0.6) summarize-challenges)) (Goal Summarize-Challenge-Insights 1.0 1.0)))) 7)
-        ; ((: r100 ((TTV 100 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Summarize-Challenge-Insights 0.9 0.6) check-challenge-accuracy)) (Goal Confirm-Challenge-Accuracy 1.0 1.0)))) 8)
-        ; ((: r101 ((TTV 101 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Confirm-Challenge-Accuracy 0.9 0.6) refine-challenge-understanding)) (Goal Refine-Challenge-Understanding 1.0 1.0)))) 6)
-        ; ((: r102 ((TTV 102 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Refine-Challenge-Understanding 0.9 0.6) explore-solutions)) (Goal Identify-Potential-Solutions 1.0 1.0)))) 4)
-        ; ((: r103 ((TTV 103 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Identify-Potential-Solutions 0.9 0.6) discuss-solutions)) (Goal Discuss-Potential-Solutions 1.0 1.0)))) 9)
-        ; ((: r104 ((TTV 104 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Discuss-Potential-Solutions 0.9 0.6) assess-solution-feasibility)) (Goal Evaluate-Solution-Feasibility 1.0 1.0)))) 5)
-        ; ((: r105 ((TTV 105 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Evaluate-Solution-Feasibility 0.9 0.6) refine-solutions)) (Goal Refine-Solution-Options 1.0 1.0)))) 7)
-        ; ((: r106 ((TTV 106 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Refine-Solution-Options 0.9 0.6) summarize-solutions)) (Goal Summarize-Solution-Insights 1.0 1.0)))) 8)
-        ; ((: r107 ((TTV 107 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Summarize-Solution-Insights 0.9 0.6) check-solution-accuracy)) (Goal Confirm-Solution-Accuracy 1.0 1.0)))) 6)
-        ; ((: r108 ((TTV 108 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Confirm-Solution-Accuracy 0.9 0.6) explore-user-preferences)) (Goal Understand-Solution-Preferences 1.0 1.0)))) 4)
-        ; ((: r109 ((TTV 109 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Solution-Preferences 0.9 0.6) finalize-solutions)) (Goal Finalize-Solution-Recommendations 1.0 1.0)))) 9)
-        ; ((: r110 ((TTV 110 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Finalize-Solution-Recommendations 0.9 0.6) check-user-satisfaction)) (Goal Confirm-User-Satisfaction 1.0 1.0)))) 5)
+;        ; ((: r81 ((TTV 81 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Confirm-Related-Goal-Accuracy 0.9 0.6) refine-goal-insights)) (Goal Refine-Related-Goal-Understanding 1.0 1.0)))) 7)
+;        ; ((: r82 ((TTV 82 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Refine-Related-Goal-Understanding 0.9 0.6) explore-user-values)) (Goal Identify-User-Values 1.0 1.0)))) 8)
+;        ; ((: r83 ((TTV 83 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Identify-User-Values 0.9 0.6) ask-value-questions)) (Goal Learn-Value-Details 1.0 1.0)))) 6)
+;        ; ((: r84 ((TTV 84 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Learn-Value-Details 0.9 0.6) assess-value-importance)) (Goal Understand-Value-Importance 1.0 1.0)))) 4)
+;        ; ((: r85 ((TTV 85 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Value-Importance 0.9 0.6) explore-value-motivations)) (Goal Explore-Value-Motivations 1.0 1.0)))) 9)
+;        ; ((: r86 ((TTV 86 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Explore-Value-Motivations 0.9 0.6) summarize-values)) (Goal Summarize-Value-Insights 1.0 1.0)))) 5)
+;        ; ((: r87 ((TTV 87 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Summarize-Value-Insights 0.9 0.6) check-value-accuracy)) (Goal Confirm-Value-Accuracy 1.0 1.0)))) 7)
+;        ; ((: r88 ((TTV 88 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Confirm-Value-Accuracy 0.9 0.6) refine-value-understanding)) (Goal Refine-Value-Understanding 1.0 1.0)))) 8)
+;        ; ((: r89 ((TTV 89 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Refine-Value-Understanding 0.9 0.6) explore-related-values)) (Goal Identify-Related-Values 1.0 1.0)))) 6)
+;        ; ((: r90 ((TTV 90 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Identify-Related-Values 0.9 0.6) ask-related-value-questions)) (Goal Learn-Related-Value-Details 1.0 1.0)))) 4)
+;        ; ((: r91 ((TTV 91 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Learn-Related-Value-Details 0.9 0.6) assess-value-relevance)) (Goal Understand-Related-Value-Relevance 1.0 1.0)))) 9)
+;        ; ((: r92 ((TTV 92 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Related-Value-Relevance 0.9 0.6) summarize-related-values)) (Goal Summarize-Related-Value-Insights 1.0 1.0)))) 5)
+;        ; ((: r93 ((TTV 93 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Summarize-Related-Value-Insights 0.9 0.6) check-value-feedback)) (Goal Confirm-Related-Value-Accuracy 1.0 1.0)))) 7)
+;        ; ((: r94 ((TTV 94 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Confirm-Related-Value-Accuracy 0.9 0.6) refine-value-insights)) (Goal Refine-Related-Value-Understanding 1.0 1.0)))) 8)
+;        ; ((: r95 ((TTV 95 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Refine-Related-Value-Understanding 0.9 0.6) explore-user-challenges)) (Goal Identify-User-Challenges 1.0 1.0)))) 6)
+;        ; ((: r96 ((TTV 96 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Identify-User-Challenges 0.9 0.6) ask-challenge-questions)) (Goal Learn-Challenge-Details 1.0 1.0)))) 4)
+;        ; ((: r97 ((TTV 97 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Learn-Challenge-Details 0.9 0.6) assess-challenge-impact)) (Goal Understand-Challenge-Impact 1.0 1.0)))) 9)
+;        ; ((: r98 ((TTV 98 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Challenge-Impact 0.9 0.6) explore-challenge-reasons)) (Goal Explore-Challenge-Reasons 1.0 1.0)))) 5)
+;        ; ((: r99 ((TTV 99 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Explore-Challenge-Reasons 0.9 0.6) summarize-challenges)) (Goal Summarize-Challenge-Insights 1.0 1.0)))) 7)
+;        ; ((: r100 ((TTV 100 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Summarize-Challenge-Insights 0.9 0.6) check-challenge-accuracy)) (Goal Confirm-Challenge-Accuracy 1.0 1.0)))) 8)
+;        ; ((: r101 ((TTV 101 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Confirm-Challenge-Accuracy 0.9 0.6) refine-challenge-understanding)) (Goal Refine-Challenge-Understanding 1.0 1.0)))) 6)
+;        ; ((: r102 ((TTV 102 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Refine-Challenge-Understanding 0.9 0.6) explore-solutions)) (Goal Identify-Potential-Solutions 1.0 1.0)))) 4)
+;        ; ((: r103 ((TTV 103 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Identify-Potential-Solutions 0.9 0.6) discuss-solutions)) (Goal Discuss-Potential-Solutions 1.0 1.0)))) 9)
+;        ; ((: r104 ((TTV 104 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Discuss-Potential-Solutions 0.9 0.6) assess-solution-feasibility)) (Goal Evaluate-Solution-Feasibility 1.0 1.0)))) 5)
+;        ; ((: r105 ((TTV 105 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Evaluate-Solution-Feasibility 0.9 0.6) refine-solutions)) (Goal Refine-Solution-Options 1.0 1.0)))) 7)
+;        ; ((: r106 ((TTV 106 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Refine-Solution-Options 0.9 0.6) summarize-solutions)) (Goal Summarize-Solution-Insights 1.0 1.0)))) 8)
+;        ; ((: r107 ((TTV 107 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Summarize-Solution-Insights 0.9 0.6) check-solution-accuracy)) (Goal Confirm-Solution-Accuracy 1.0 1.0)))) 6)
+;        ; ((: r108 ((TTV 108 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Confirm-Solution-Accuracy 0.9 0.6) explore-user-preferences)) (Goal Understand-Solution-Preferences 1.0 1.0)))) 4)
+;        ; ((: r109 ((TTV 109 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Solution-Preferences 0.9 0.6) finalize-solutions)) (Goal Finalize-Solution-Recommendations 1.0 1.0)))) 9)
+;        ; ((: r110 ((TTV 110 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Finalize-Solution-Recommendations 0.9 0.6) check-user-satisfaction)) (Goal Confirm-User-Satisfaction 1.0 1.0)))) 5)
       )))
 )
-
-!(populateRuleSpace_)
-; !(get-atoms &RS)
-
-(= (loop) 
-   (let* (
-        ($userInput (pyModule getUserInput ()))
-        ($response (pyModule generateResponse ($userInput)))
-        (($content $summary) (extractTuple $response))
-        ($rules (collapse (get-atoms &RS)))
-        ($rule    (pyModuleX correlation_matcher ($summary $rules $content)))
-        ($_ (println! (selected Rule --> (get-metatype $rule) $rule)))
-        (((: $handle ($tv (IMPLICATION_LINK (AND_LINK ((Goal $context $x_0 $y_0) $action)) $goal))) $wght) $rule )
-        (() (println! (selected Context --> (get-metatype $context) $context)))
-       
-        ($emotion (psi-agent-loop $context &RS ))
-        (() (println! (selected Emotion --> $emotion)))
-        ; ($res (pyModule generateResponse ($emotion)))
-      )
+(= (addDemandGoalRels $space)
+    (add-reduct $space 
+     (superpose 
       (
-        if(== $userInput "exit")
-          ()
-          (loop)
+        
+      (: integrity (Goal Summarize-User-Preferences 1.0 1.0)) ; r9, r10: Summarizing preferences ensures accurate synthesis, fits integrity.
+      (: competence (Goal Understand-User-Interests 1.0 1.0)) ; r11: Finalizing interest understanding requires competence.
+      (: energy (Goal Off-Topic-Discussion 1.0 1.0)) ; d1, d5: Discussing random topics requires engagement, fits energy.
+      (: energy (Goal Engage-User-Fun 1.0 1.0)) ; d2: Sharing a joke is engaging, fits energy.
+      (: energy (Goal Provide-Feedback 1.0 1.0)) ; d4: Offering advice involves active engagement, fits energy.
+      (: energy (Goal Engage-User-Story 1.0 1.0)) ; d7: Sharing a story is emotionally engaging, fits energy.
+      (: competence (Goal Ask-Recent-Events 1.0 1.0)) ; r19: Inquiring events involves gathering info, fits competence.
+      (: competence (Goal Learn-Recent-Event-Details 1.0 1.0)) ; r20: Collecting event details requires learning, fits competence.
+      (: competence (Goal Understand-Event-Impact 1.0 1.0)) ; r21: Assessing impact involves analysis, fits competence.
+      (: energy (Goal Explore-Event-Emotions 1.0 1.0)) ; r22: Probing emotions is engaging, matches example energy demand.
+      (: competence (Goal Understand-Event-Significance 1.0 1.0)) ; r23: Assessing significance requires analysis, fits competence.
+      (: energy (Goal Propose-Related-Topics 1.0 1.0)) ; r24: Suggesting topics involves engagement, fits energy.
+      (: certainty (Goal Receive-Topic-Choice 1.0 1.0)) ; r25: Eliciting topic choice aligns with receiving response, fits certainty.
+      (: energy (Goal Discuss-Chosen-Topic 1.0 1.0)) ; r26: Discussing chosen topic requires engagement, fits energy.
+      (: competence (Goal Deepen-Topic-Understanding 1.0 1.0)) ; r27: Deepening understanding requires analysis, fits competence.
+      (: competence (Goal Learn-Specific-Topic-Details 1.0 1.0)) ; r28: Learning details involves competence, matches example.
+      (: competence (Goal Evaluate-Topic-Interest 1.0 1.0)) ; r29: Assessing interest requires analysis, fits competence.
+      (: certainty (Goal Confirm-User-Engagement 1.0 1.0)) ; r30: Checking engagement aligns with certainty, matches example.
+      (: energy (Goal Re-engage-User 1.0 1.0)) ; r31: Re-engaging user requires energy, matches example.
+      (: energy (Goal Propose-New-Topic 1.0 1.0)) ; r32: Suggesting new topic involves engagement, fits energy.
+      (: certainty (Goal Receive-New-Topic-Choice 1.0 1.0)) ; r33: Eliciting new topic choice aligns with certainty.
+      (: energy (Goal Discuss-New-Topic 1.0 1.0)) ; r34: Discussing new topic requires engagement, fits energy.
+      (: competence (Goal Learn-New-Topic-Details 1.0 1.0)) ; r35: Learning new topic details involves competence.
+      (: competence (Goal Evaluate-Topic-Relevance 1.0 1.0)) ; r36: Assessing relevance requires analysis, fits competence.
+      (: competence (Goal Relate-To-User-Preferences 1.0 1.0)) ; r37: Connecting to preferences involves understanding, fits competence.
+      (: certainty (Goal Confirm-Topic-Relevance 1.0 1.0)) ; r38: Confirming relevance aligns with certainty, matches example.
+      (: energy (Goal Deepen-Topic-Exploration 1.0 1.0)) ; r39: Deepening exploration requires engagement, matches example.
+      (: competence (Goal Learn-Detailed-Topic-Insights 1.0 1.0)) ; r40: Learning detailed insights involves competence.
+      (: competence (Goal Understand-Topic-Insights 1.0 1.0)) ; r41: Understanding insights requires analysis, matches example.
+      (: integrity (Goal Summarize-Topic-Insights 1.0 1.0)) ; r42: Summarizing insights ensures accuracy, fits integrity.
+      (: integrity (Goal Confirm-Insight-Accuracy 1.0 1.0)) ; r43: Confirming accuracy aligns with integrity, matches example.
+      (: integrity (Goal Refine-Topic-Understanding 1.0 1.0)) ; r44: Refining understanding ensures accuracy, matches example.
+      (: competence (Goal Identify-Related-Interests 1.0 1.0)) ; r45: Exploring related interests involves analysis, fits competence.
+      (: competence (Goal Learn-Preference-Details 1.0 1.0)) ; r46: Learning preference details requires competence.
+      (: competence (Goal Understand-Preference-Strength 1.0 1.0)) ; r47: Assessing preference strength involves analysis, fits competence.
+      (: energy (Goal Explore-Preference-Motivations 1.0 1.0)) ; r48: Exploring motivations requires engagement, fits energy.
+      (: integrity (Goal Summarize-Preference-Insights 1.0 1.0)) ; r49: Summarizing preferences ensures accuracy, fits integrity.
+      (: integrity (Goal Receive-Preference-Feedback 1.0 1.0)) ; r50: Checking feedback ensures accurate understanding, fits integrity.
+
+    )
+    )
+  )
+)
+
+(= (populateDemandSpace $demandspace) 
+   (add-reduct $demandspace 
+    (superpose 
+      (
+        (demand affiliation 0.5) 
+        (demand energy 0.9) 
+        (demand competence 0.9)
+        (demand certainty 0.1)
+        (demand integrity 1.0)
+        )
       )
-      ; $ruleExp
     )
    )
-
-(= (extractTuple $response) 
-   (let* (
-          ($messages ((py-dot $response get) "messages" ""))
-          ($last_message ((py-dot $messages __getitem__) -1))
-          ($content (py-dot $last_message content))
-          ($summary ((py-dot $response get) "summary" ""))
-        )
-        ($content $summary)
-     )
-   )
-
-!(loop)
-
-;; TODO:
-;; - Poplulate demand and modulator spaces .
-;; - Fix the way these spaces are used in the feedbackloop if problems persist.
-

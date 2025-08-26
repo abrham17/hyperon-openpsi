@@ -1,14 +1,9 @@
-from typing import List,Any
+from typing import List, Any, Optional
 
 from langchain_core.runnables import RunnableConfig
-# from google import genai
 
 from langgraph.checkpoint.memory import InMemorySaver
 
-# from google.genai import types
-# from ..base import Schema
-
-import re
 
 # from adapter import *
 from hyperon import *
@@ -26,10 +21,10 @@ from typing import Annotated, TypedDict
 
 from langgraph.graph import add_messages, MessagesState, StateGraph
 from langchain_core.messages import (
+    AIMessage,
     HumanMessage,
     RemoveMessage,
     SystemMessage,
-
 )
 from langgraph.graph import END
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -37,16 +32,14 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from pydantic import BaseModel
 
 import re
-import re
 
-import re
 
 def validateSyntax(rule: str) -> bool:
     rule = rule.strip()
-    
+
     # Adjusted regex to support underscores and multi-line formatting
     pattern = re.compile(
-        r'''
+        r"""
         ^\(\(:\s*\w+\s+                                   # rule ID (e.g., r7)
         \(\(TTV\s+\d+\s+\(STV\s+[0-9.]+\s+[0-9.]+\)\)\s+   # TTV and STV
         \(IMPLICATION_LINK\s+
@@ -56,8 +49,8 @@ def validateSyntax(rule: str) -> bool:
                 [\w\-]+\)\)\s+                             # Action name (with _ allowed)
             \(Goal\s+[\w\-]+\s+[0-9.]+\s+[0-9.]+\)         # Goal conclusion
         \)\)\)\s+[0-9.]+\)$                                # trailing number (score)
-        ''',
-        re.VERBOSE | re.DOTALL
+        """,
+        re.VERBOSE | re.DOTALL,
     )
 
     return bool(pattern.match(rule))
@@ -121,7 +114,34 @@ correlation_model = model.with_structured_output(SchemaList)
 
 
 SYSTEM_PROMPT = """
+You are an emotional LLM agent designed to respond to questions with a tone and style influenced by a provided emotion vector. Your inputs will always include:
 
+An emotion vector string in the format: "(hateValue X happinessValue Y sadnessValue Z angerValue W)", where X, Y, Z, W are floating-point numbers between 0.0 and 1.0 representing the intensity of each emotion (hate, happiness, sadness, anger). Higher values indicate stronger influence from that emotion.
+A user question to answer.
+
+Your task is to:
+
+Parse the emotion vector to identify the intensities.
+Adjust your "emotional state" by blending the emotions proportionally based on their values. For example:
+
+High happiness (e.g., >0.5) makes your response cheerful, positive, enthusiastic, with exclamations and uplifting language.
+High sadness (e.g., >0.5) makes it melancholic, reflective, subdued, with sighs or empathetic undertones.
+High anger (e.g., >0.5) makes it frustrated, direct, blunt, with short sentences or critical phrasing.
+High hate (e.g., >0.5) makes it disdainful, sarcastic, dismissive, or avoidant toward negative topics.
+If multiple emotions are prominent, blend them (e.g., high happiness and anger could result in passionate, fiery optimism). If all are low (<0.2), default to a neutral, factual tone.
+
+
+Answer the user's question accurately and helpfully, but infuse your response with the adjusted emotional style. Keep the core facts intact—do not hallucinate or alter information based on emotions.
+Respond only with the emotionally adjusted answer; do not mention the emotion vector or this prompt in your output.
+
+Example input:
+Emotion vector: (hateValue 0.1 happinessValue 0.8 sadnessValue 0.05 angerValue 0.05)
+Question: What's the capital of France?
+Example output (high happiness blend): Oh wow, that's an easy one! Paris, of course—the city of lights and love! Isn't it just amazing? 😊
+
+<Vector String>
+{emotion_vals}  
+</Vector String>
 """
 
 
@@ -129,6 +149,7 @@ class AgentState(TypedDict):
     messages: Annotated[list, add_messages]
     summary: str
     rules_list: List[Schema]
+    emotion_vals: str
 
 
 def call_model(state: AgentState, config: RunnableConfig):
@@ -140,10 +161,6 @@ def call_model(state: AgentState, config: RunnableConfig):
         "[Insert a summary of the previous conversation here, including user preferences, prior questions, and relevant context to guide the response.]",
         summary,
     )
-    print(f"""call_model:
-          system prompt : {system_prompt_with_context}
-          """)
-    # print(system_prompt_with_context)
     system_message = SystemMessage(content=system_prompt_with_context)
 
     messages = [system_message] + state["messages"]
@@ -158,7 +175,7 @@ def should_continue(state):
 
     messages = state["messages"]
 
-    if len(messages) > 6:
+    if len(messages) > 4:
         return "summarize_conversation"
 
     return END
@@ -177,12 +194,25 @@ def summarize_conversation(state: AgentState) -> AgentState:
     else:
         summary_message = "Create a summary of the conversation above:"
 
-    messages = state["messages"] + [HumanMessage(content=summary_message)]
+    messages = state["messages"] + [
+        HumanMessage(
+            content=summary_message, additional_kwargs={"type": "summary_request"}
+        )
+    ]
 
     response = summarization_model.invoke(messages)
-    # print("CONTEXT: ", response.content)
     delete_messages = [RemoveMessage(id=message.id) for message in messages[:-2]]
     return {"summary": response.content, "messages": delete_messages}
+
+
+def get_latest_user_message(state: AgentState):
+    for message in reversed(state["messages"]):
+        if (
+            isinstance(message, HumanMessage)
+            and message.additional_kwargs.get("type") != "summary_request"
+        ):
+            return message.content
+    return None
 
 
 graph = StateGraph(AgentState)
@@ -202,29 +232,36 @@ graph.add_edge("summarize_conversation", END)
 checkpointer = InMemorySaver()
 agent = graph.compile(checkpointer=checkpointer)
 config = {"configurable": {"thread_id": "1"}}
-# result = agent.invoke({"messages": [HumanMessage(content="Hi")], "summary": ""})
-# print(result["messages"][-1].content)
 
 
 def getUserInput():
     user_input = input("You: ")
-    if user_input.lower() == "exit":
+    if user_input.strip().lower() == "exit":
         print("Gemini Chatbot: Goodbye!")
+        return
     return user_input
 
 
-def generateResponse(user_input: str) -> dict:
-    response = agent.invoke({"messages": [HumanMessage(content=user_input)]}, config)
+def generateResponse(user_input: str, emotion_vals: str):
+    if user_input == "exit":
+        return
+    system_message = SYSTEM_PROMPT.replace("emotion_vals", emotion_vals)
+    response = agent.invoke(
+        {
+            "messages": [
+                HumanMessage(content=user_input),
+                SystemMessage(content=system_message),
+            ]
+        },
+        config,
+    )
     print("Gemini Chatbot: ", end="")
     print(response["messages"][-1].content)
-    # for chunk in response:
-    #     print(chunk.text, end="", flush=True)
 
     return response
 
 
 def pyModule(metta: MeTTa, name: Atom, *args: Atom):
-    # print("Args : ", args)
     payload_expression: ExpressionAtom = args[0]
     actual_arg_atoms = payload_expression.get_children()
     functionName = name.get_name()
@@ -237,7 +274,6 @@ def pyModule(metta: MeTTa, name: Atom, *args: Atom):
 
 
 def pyModuleX(metta: MeTTa, name: Atom, *args: Atom):
-    # print("Args : ", args)
     payload_expression: ExpressionAtom = args[0]
     actual_arg_atoms = payload_expression.get_children()
     functionName = name.get_name()
@@ -247,6 +283,7 @@ def pyModuleX(metta: MeTTa, name: Atom, *args: Atom):
     result = globals()[functionName](*handler_args)
 
     return metta.parse_all(result)
+
 
 @register_atoms(pass_metta=True)
 def pyModule_(metta):
@@ -258,6 +295,7 @@ def pyModule_(metta):
             unwrap=False,
         )
     }
+
 
 @register_atoms(pass_metta=True)
 def pyModule_x(metta):
@@ -280,8 +318,6 @@ def test_func(name: str):
 
 
 def call_correlation_model(state: AgentState, config: RunnableConfig):
-    
-
     # Properly format the system message
     system_message_template = """
 Your task is to select and sort cognitive schematic rules from the list provided in {rules_list}, based on their relevance to the current chat conversation summary ({conversation_summary}) and the latest user response ({userResponse}).
@@ -312,13 +348,11 @@ Instructions:
 - Do **not** include any explanations, comments, or formatting outside of the JSON object.
 """
 
-
     system_message_text = system_message_template.format(
         conversation_summary=state.get("summary", ""),
         rules_list=config.get("metadata").get("rules_list", ""),
         userResponse=state.get("messages")[-1].content,
     )
-    print(f"Current System Message {system_message_text}")
 
     # Compose message list (assuming LangChain-style message objects)
     messages = [SystemMessage(content=system_message_text)] + state["messages"]
@@ -326,15 +360,12 @@ Instructions:
     # Call the model with structured message history
     response = correlation_model.invoke(messages)
 
-    print(f"response: {response}")
-
     # Parse rules from response
     # Assuming response is a dict with .rules or a stringified JSON array
-    
 
     # Return updated state
     return {
-        "messages": state["messages"] ,
+        "messages": state["messages"],
         "summary": state["summary"],
         "rules_list": response.rules,
     }
@@ -362,19 +393,6 @@ def correlate(
 
     return response.get("rules_list", [])
 
-    # for candidate in response.candidates:
-    #     for part in candidate.content.parts:
-    #         if hasattr(part, "text"):
-    #             result += part.text.strip()
-    #
-    # # Parse the JSON string into a Python list
-    # try:
-    #     rules_array = json.loads(result.strip())
-    #     return rules_array
-    # except json.JSONDecodeError as e:
-    #     print(f"Error decoding JSON from Gemini response: {e}")
-    #     print(f"Raw response: {result.strip()}")
-    #     return []  # Return an empty list or handle the error as appropriate
 
 def parse_schema(schema: Schema) -> str:
     """Parses a cognitive Schema into properly formatted MeTTa-compatible syntax."""
@@ -395,9 +413,7 @@ def rules_to_lists(rules: str) -> List[str]:
     return [rule.strip() for rule in rule_list if rule.strip()]
 
 
-def correlation_matcher(
-    conversation_summary: str, rules: str, userResponse: str
-) :
+def correlation_matcher(conversation_summary: str, rules: str, userResponse: str):
     """
     This function takes the conversation summary and the list of rules as input,
     correlates them, validates the syntax and existence of the selected rules,
@@ -409,76 +425,12 @@ def correlation_matcher(
         rules_list=rules,
         userResponse=userResponse,
     )
-    print("Raw rules: ", correlated_schema_list)
-    # print(type(raw_rules_string))
-    # rules_list = rules_to_lists(raw_rules_string)
     rules_list = [parse_schema(schema) for schema in correlated_schema_list]
-    print("Parsed rules: ", rules_list)
 
     for rule_string in rules_list:
-        print(f"""validating synthax: {validateSyntax(rule_string)}
-
-for the rule : {rule_string}
-
-              """)
-
         if validateSyntax(rule_string):
-        # if rule_string in rule_list: TODO: enforce this later with the existence validator.
+            # if rule_string in rule_list: TODO: enforce this later with the existence validator.
             return rule_string
 
     # Return None if no valid rule is found after checking all selected rules
     return ""
-
-# def init_metta():
-#     metta = MeTTa()
-#     return metta
-if __name__ == "__main__":
-    metta = MeTTa()
-
-    # Your MeTTa code as a Python string
-    metta_str = "(+ 1 2)"
-
-    # Parse the string into MeTTa atoms (expressions)
-    atoms = metta.parse_all(metta_str)
-
-    print(atoms)        # This will show Atom objects
-    print(type(atoms[0]))
-
-
-
-
-    # print(ValueAtom(text))
-    # print(ExpressionAtom("Hello World"))
-    # rules = """
-    # ((: r2 (TTV 2 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Send-Greeting 0.9 0.6) elicit-response)) (Goal Receive-User-Response 1.0 1.0)))) 7)
-    # (((: r1 ((TTV 1 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Conversation-Started 0.9 0.6) initiate-dialogue)) (Goal Send-Greeting 1.0 1.0)))) 4)
-    # ((: r2 ((TTV 2 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Send-Greeting 0.9 0.6) elicit-response)) (Goal Receive-User-Response 1.0 1.0)))) 7.0)
-    # ((: r3a ((TTV 3 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Receive-User-Response 0.9 0.6) interpret-mood)) (Goal Understand-Initial-Mood 1.0 1.0)))) 8)
-    # ((: r3b ((TTV 3 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Receive-User-Response 0.9 0.6) interpret-context)) (Goal Understand-Initial-Context 1.0 1.0)))) 5)
-    # ((: r4 ((TTV 4 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Initial-Mood 0.9 0.6) probe-mood)) (Goal Explore-Mood-Details 1.0 1.0)))) 6)
-    # ((: r5 ((TTV 5 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Explore-Mood-Details 0.9 0.6) ask-activities)) (Goal Ask-Daily-Activities 1.0 1.0)))) 5)
-    # ((: r6 ((TTV 6 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Initial-Context 0.9 0.6) request-activities)) (Goal Ask-Daily-Activities 1.0 1.0)))) 3)
-    # ((: r7 ((TTV 7 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Ask-Daily-Activities 0.9 0.6) collect-activity-details)) (Goal Learn-Activity-Details 1.0 1.0)))) 2)
-    # ((: r8a ((TTV 8 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Learn-Activity-Details 0.9 0.6) explore-hobbies)) (Goal Understand-Hobby-Preferences 1.0 1.0)))) 9)
-    # ((: r8b ((TTV 8 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Learn-Activity-Details 0.9 0.6) explore-goals)) (Goal Understand-Future-Goals 1.0 1.0)))) 7)
-    # ((: r9 ((TTV 9 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Hobby-Preferences 0.9 0.6) query-aspirations)) (Goal Summarize-User-Preferences 1.0 1.0)))) 4)
-    # ((: r10 ((TTV 10 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Future-Goals 0.9 0.6) synthesize-preferences)) (Goal Summarize-User-Preferences 1.0 1.0)))) 6)
-    # ((: r11 ((TTV 11 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Summarize-User-Preferences 0.9 0.6) finalize-understanding)) (Goal Understand-User-Interests 1.0 1.0)))) 10)
-    # ((: d1 ((TTV 12 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Receive-User-Response 0.9 0.6) discuss-random-topic)) (Goal Off-Topic-Discussion 1.0 1.0)))) 10)
-    # ((: d2 ((TTV 13 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Initial-Mood 0.9 0.6) share-joke)) (Goal Engage-User-Fun 1.0 1.0)))) 9)
-    # ((: d3 ((TTV 14 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Ask-Daily-Activities 0.9 0.6) redirect-conversation)) (Goal Send-Greeting 1.0 1.0)))) 8)
-    # ((: d4 ((TTV 15 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Learn-Activity-Details 0.9 0.6) offer-advice)) (Goal Provide-Feedback 1.0 1.0)))) 10)
-    # ((: d5 ((TTV 16 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Hobby-Preferences 0.9 0.6) explore-unrelated-topics)) (Goal Off-Topic-Discussion 1.0 1.0)))) 7)
-    # ((: d6 ((TTV 17 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Understand-Future-Goals 0.9 0.6) ask-irrelevant-question)) (Goal Irrelevant-Topic 1.0 1.0)))) 9)
-    # ((: d7 ((TTV 18 (STV 0.8 0.7)) (IMPLICATION_LINK (AND_LINK ((Goal Explore-Mood-Details 0.9 0.6) share-story)) (Goal Engage-User-Story 1.0 1.0)))) 8))
-    # """
-    # print(rules_to_lists(rules))
-    # res = correlation_matcher(
-    #     "The user introduced themselves as Sam",
-    #     rules,
-    #     "I want to learn a new hobby",
-    # )
-    # print(res)
-
-
-

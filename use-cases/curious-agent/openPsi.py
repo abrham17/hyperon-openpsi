@@ -7,10 +7,13 @@ from google.genai import types
 from base import Schema
 import json
 from adapter import *
+from dotenv import load_dotenv
 
+load_dotenv()
 def correlate(conversation_summary: str, rules_list: List[str],userResponse:str) -> List[str]:
+    api_key  = os.getenv("GEMINI_API_KEY")
     client = genai.Client(
-        api_key="AIzaSyBCWD1mXOatWSAIlRTQfCX5iCUbohuMuXs",
+        api_key,
     )
 
     model = "gemini-2.0-flash"
