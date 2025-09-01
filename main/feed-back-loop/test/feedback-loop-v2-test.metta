@@ -15,9 +15,9 @@
 
 ;; Create the necessary spaces
 !(bind! &kb (new-space))
+!(bind! &ruleSpace (new-space))
 !(bind! &modulator-space (new-space))
 !(bind! &demandspace (new-space))
-!(bind! &ruleSpace (new-space))
 
 (= (addRulesToSpaceV2 $space) (
     add-reduct $space (superpose (
@@ -215,7 +215,7 @@
 		False
 		(let* (
 			(($rule $tail) (decons-atom $rules))
-            ;($_ (println! (isGoalMetInnerRule $rule tail $tail)))
+            ($_ (println! (isGoalMetInnerRule $rule tail $tail)))
 			($ruleGoal (extractGoalFromRuleV2 $rule))
 			((Goal $g $tv $sgv) $goal)
             ($_ (println! (this is the goal $ruleGoal = $g)))
@@ -267,6 +267,7 @@
 	  	($rules (collapse (get-atoms &ruleSpace)))
 		($modulators (collapse (get-atoms &modulator-space)))
 		($demands (collapse (get-atoms &demandspace)))
+    (() (println! $demands))
 		($partialKb (union-atom $rules $modulators))
 		($kbExp (union-atom $partialKb $demands))
 		($_ (collapse (add-atoms $kb $kbExp)))
@@ -331,6 +332,7 @@
 )
 
 ;; Tests
+;!(get-atoms &demandspace)
 !(assertEqual (kb-initializer &kb) ())
 !(assertEqual (isListEmpty (queryAll &kb modulator)) False)
 !(assertEqual (isListEmpty (queryAll &kb rule)) False)
@@ -342,5 +344,5 @@
 !(assertEqual (demandSelector ((demand Affiliation 3) (demand Concept 4) (demand Car 8))) (demand Affiliation 3))
 
 ;; Uncomment the following to run the loop
-; !(kb-initializer &kb)
-; !(psi-agent-loop (init) &kb)
+ ;!(kb-initializer &kb)
+ ;!(psi-agent-loop (init) &kb)

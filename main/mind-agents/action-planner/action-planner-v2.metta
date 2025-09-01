@@ -4,14 +4,14 @@
 (= (TestedActions) &testedActions)
 
 (= (hillClimbingPlanner $initialState $goal $testedActions $plan $ruleSpace)
-   (if (== $initialState $goal) ;if thecurrent state is the goal or a path from $initalState to $goal has been found, return the plan.
+   (if (== $initialState $goal) ;if the current state is the goal or a path from $initalState to $goal has been found, return the plan.
      $plan
      (let* (
             ($tested (getTestedActions $initialState $testedActions)) ;query tested actions for initialState.
             ($applicableActions (collapse (match $ruleSpace 
                                                  (: $handle (IMPLICATION_LINK (AND_LINK (($initialState) $action)) $g))
                                                  $action))) ;get applicable actions and.
-            ($untriedActions (collapse (filterUntriedRules $applicableActions $tested) )) ;Filter out the ones that already have been tested.
+            ($untriedActions (filterUntriedRules $applicableActions $tested () )) ;Filter out the ones that already have been tested.
             ;(() (println! ( tested --> $tested untried --> $untriedActions applicable --> $applicableActions plan --> $plan)))
           )
        (if (== $untriedActions ()) ;No untested actions, return () to back
@@ -64,9 +64,17 @@
      )
    )
    
-(= (filterUntriedRules $actions $tested)
-    ( let $x (superpose $actions) (if (isMember $x $tested) (empty) $x) )
-)
+(= (filterUntriedRules $actions $tested $acc)
+     (if (== $actions ())
+      $acc
+      (let ($head $tail) (decons-atom $actions)
+        (if (isMember $head $tested)
+          (filterUntriedRules $tail $tested $acc)
+          (filterUntriedRules $tail $tested (cons-atom $head $acc))
+          )
+       )
+    )
+   )
 
 (= (findMinDistance $newStates $goal $minDistance $bestPair $ruleSpace)
    (if (== $newStates ())
