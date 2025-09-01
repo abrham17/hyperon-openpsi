@@ -29,23 +29,26 @@
 	)
 )
 
-(= (loop $emotionVals) 
+(= (computeEmotionVals $userInput $emotionVals) 
    (let* (
-        ($userInput (pyModule getUserInput ()))
         ($response (pyModule generateResponse ($userInput $emotionVals)))
         ($summary (extractSummary $response))
         ($rules (collapse (get-atoms &ruleSpace)))
         ($rule (pyModuleX correlation_matcher ($summary $rules $userInput)))
         (((: $handle ($tv (IMPLICATION_LINK (AND_LINK ((Goal $context $x $y) $action)) $goal))) $wght) $rule)
         ($emotion (psi-agent-loop $context &kb))
-        ;(() (println! $emotion))
       )
-      (
-        if(== $userInput "exit")
-          ()
-          (loop $emotion)
-      )
+     $emotion
     )
+   )
+
+(= (mainLoop $emotionVals)
+     (let $userInput (pyModule getUserInput ()) 
+            (if (== $userInput "exit") 
+              Goodbye! 
+              (let $updatedEmotionVals (computeEmotionVals $userInput $emotionVals) (mainLoop $updatedEmotionVals))
+            )
+      )
    )
 
 (= (extractSummary $response) 
@@ -63,4 +66,4 @@
 !(insert-modulators &modulator-space)
 !(kb-initializer &kb)
 
-!(loop (happinessValue 0.5 sadnessValue 0.039 angerValue 0.2 fearValue 0.04 gratitudeValue 0.6))
+!(mainLoop (happinessValue 0.5 sadnessValue 0.039 angerValue 0.5 fearValue 0.04 gratitudeValue 0.6))
