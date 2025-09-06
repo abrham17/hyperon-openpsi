@@ -43,9 +43,11 @@
    )
 
 (= (mainLoop $emotionVals)
-     (let $userInput (pyModule getUserInput ()) 
-            (if (== $userInput "exit") 
-              Goodbye! 
+     (let* (($userInput (pyModule getUserInput ()))
+            ($_ (pyModuleX visualizeEmotionValues $emotionVals))   
+            )
+            (if (== $userInput "exit")
+              Goodbye!
               (let $updatedEmotionVals (computeEmotionVals $userInput $emotionVals) (mainLoop $updatedEmotionVals))
             )
       )
@@ -65,5 +67,4 @@
 !(populateDemandSpace &demandspace)
 !(insert-modulators &modulator-space)
 !(kb-initializer &kb)
-
 !(mainLoop (happinessValue 0.5 sadnessValue 0.039 angerValue 0.5 fearValue 0.04 gratitudeValue 0.6))

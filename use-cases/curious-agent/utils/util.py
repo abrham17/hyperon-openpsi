@@ -4,8 +4,6 @@ from langchain_core.runnables import RunnableConfig
 
 from langgraph.checkpoint.memory import InMemorySaver
 
-
-# from adapter import *
 from hyperon import *
 from hyperon.ext import register_atoms
 from hyperon.atoms import (
@@ -434,3 +432,39 @@ def correlation_matcher(conversation_summary: str, rules: str, userResponse: str
 
     # Return None if no valid rule is found after checking all selected rules
     return ""
+
+import matplotlib
+matplotlib.use("Agg")  # Use a non-interactive backend for file output only
+
+import matplotlib.pyplot as plt
+from typing import Any
+
+
+# Force a non-Tk backend (QtAgg or WebAgg are good options)
+# matplotlib.use("WebAgg")  # runs in browser
+# If you’re in Jupyter, just comment both and it auto-selects inline
+fig = None
+ax = None
+bars = None
+
+def emotion_value_pair(emotions):
+    emo_val = {}
+    for e in range(len(emotions) // 2):
+        emo_val[emotions[e * 2]] = float(emotions[e * 2 + 1])
+    return emo_val
+
+def visualizeEmotionValues(*emotions: Any, scale_min: float = 0.0, scale_max: float = 1.0):
+    """
+    Visualize emotion values as a static bar chart and save to file.
+    """
+    filtered_emotions = emotion_value_pair(emotions)
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.set_xlabel('Emotions')
+    ax.set_ylabel('Values')
+    ax.set_title('Emotion Values')
+    bars = ax.bar(filtered_emotions.keys(), filtered_emotions.values(), color='skyblue')
+    ax.set_ylim(scale_min, scale_max)
+    plt.tight_layout()
+    plt.savefig("emotion_values.png")
+    plt.close(fig)
+    return "(Visualization Saved)"
