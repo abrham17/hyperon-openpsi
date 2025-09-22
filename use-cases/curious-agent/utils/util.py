@@ -30,7 +30,11 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from pydantic import BaseModel
 
 import re
+# Import speech-to-text functionality
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))  # add parent dir to path
 
+from speech_to_text import create_stt_engine, create_interactive_stt
 
 def validateSyntax(rule: str) -> bool:
     rule = rule.strip()
@@ -240,6 +244,137 @@ def getUserInput():
     return user_input
 
 
+def getUserInputWithSTT():
+    """
+    Enhanced input function that supports both text and speech input.
+    """
+    print("\nInput options:")
+    print("1. Type 'text' for text input")
+    print("2. Type 'speech' for speech input")
+    print("3. Type 'exit' to quit")
+    
+    while True:
+        mode = input("\nChoose input mode (text/speech/exit): ").strip().lower()
+        
+        if mode == "exit":
+            print("Gemini Chatbot: Goodbye!")
+            return "exit"
+        elif mode == "text":
+            return input("You: ")
+        elif mode == "speech":
+            if not STT_AVAILABLE:
+                print("Speech-to-text not available. Please install required dependencies.")
+                print("Run: pip install speechrecognition pyaudio pydub openai-whisper")
+                continue
+            
+            try:
+                stt_engine = create_stt_engine(backend="google", language="en-US")
+                print("\n Listening for speech... (up to 20 seconds)")
+                text = stt_engine.listen_once(timeout=100.0, phrase_time_limit=100.0)
+                
+                if text:
+                    print(f" Heard: {text}")
+                    return text
+                else:
+                    print("No speech detected. Please try again.")
+                    continue
+                    
+            except Exception as e:
+                print(f" Speech recognition error: {e}")
+                print("Falling back to text input...")
+                return input("You: ")
+        elif mode == "interactive":
+            if not STT_AVAILABLE:
+                print(" Speech-to-text not available. Please install required dependencies.")
+                print("Run: pip install speechrecognition pyaudio pydub openai-whisper")
+                continue
+            try:
+                # One-shot interactive capture that returns text to the main loop
+                stt_engine = create_stt_engine(backend="google", language="en-US")
+                interactive_stt = InteractiveSTT(stt_engine)
+                text = interactive_stt.get_speech_input("Speak now:")
+                if text:
+                    print(f"🎤 Heard: {text}")
+                    return text
+                else:
+                    print("❌ No speech detected. Switching to text.")
+                    return input("You: ")
+                    continue
+            except Exception as e:
+                print(f"❌ Speech recognition error: {e}")
+                print("Falling back to text input...")
+                return input("You: ")
+        else:
+            print("❌ Invalid option. Please choose 'text', 'speech', or 'exit'.")
+
+
+def startInteractiveSTT():
+    """
+    Start interactive speech-to-text mode that only captures speech and returns
+    transcribed text to the caller. The main loop is responsible for emotion
+    calculation and calling the Gemini response (same as text mode).
+    """
+    if not STT_AVAILABLE:
+        print("❌ Speech-to-text not available. Please install required dependencies.")
+        print("Run: pip install speechrecognition pyaudio pydub openai-whisper")
+        return None
+
+    try:
+        interactive_stt = create_interactive_stt(backend="google", language="en-US")
+        print("\n🎤 Starting interactive speech mode...")
+        # Start interactive mode without directly calling Gemini; caller handles it
+        interactive_stt.start_interactive_mode(on_text=None)
+        return interactive_stt
+    except Exception as e:
+        print(f"❌ Failed to start interactive STT: {e}")
+        return None
+
+
+def getSpeechInput(prompt: str = "Speak now:") -> str:
+    """
+    Get speech input from the user.
+    
+    Args:
+        prompt: Prompt to display to the user
+        
+    Returns:
+        Transcribed text or empty string if no speech detected
+    """
+    if not STT_AVAILABLE:
+        print("❌ Speech-to-text not available. Please install required dependencies.")
+        return ""
+    
+    try:
+        stt_engine = create_stt_engine(backend="google", language="en-US")
+        interactive_stt = InteractiveSTT(stt_engine)
+        return interactive_stt.get_speech_input(prompt) or ""
+    except Exception as e:
+        print(f"❌ Speech recognition error: {e}")
+        return ""
+
+
+def chooseInputMode() -> str:
+    """
+    Allow user to choose input mode (only 'text' or 'speech').
+    """
+    print("\n🤖 Welcome to the Curious Agent!")
+    print("\nChoose your preferred input mode:")
+    print("1. 'text'   - Traditional text input")
+    print("2. 'speech' - Speech-to-text input")
+    
+    while True:
+        mode = input("\nEnter your choice (text/speech): ").strip().lower()
+        
+        if mode in ["text", "speech"]:
+            print(f"\n✅ Selected mode: {mode}")
+            if mode == "speech" and not STT_AVAILABLE:
+                print("❌ Speech-to-text not available. Falling back to text.")
+                return "text"
+            return mode
+        else:
+            print("❌ Invalid choice. Please enter 'text' or 'speech'.")
+
+
 def generateResponse(user_input: str, emotion_vals: str):
     if user_input == "exit":
         return
@@ -313,6 +448,56 @@ def test_func(name: str):
     # !(pyModule tes_func (param1, ...))
 
     return f"Hello, {name}!"
+
+
+def run_dialogue_loop():
+    """
+    Simple interactive loop entirely in Python.
+    - Lets the user pick input mode once (text or speech)
+    - Repeats until the user types/says 'exit'
+    - Uses a neutral emotion vector by default
+    """
+    try:
+        mode = chooseInputMode()
+    except Exception:
+        mode = "text"
+
+    neutral_emotions = "(hateValue 0.0 happinessValue 0.0 sadnessValue 0.0 angerValue 0.0)"
+
+    if mode == "text":
+        while True:
+            try:
+                user_input = input("You: ")
+            except KeyboardInterrupt:
+                print("\nGoodbye!")
+                break
+            if not user_input:
+                continue
+            if user_input.strip().lower() == "exit":
+                print("Gemini Chatbot: Goodbye!")
+                break
+            generateResponse(user_input, neutral_emotions)
+    else:
+        # speech mode
+        if not STT_AVAILABLE:
+            print("❌ Speech-to-text not available. Falling back to text.")
+            return run_dialogue_loop()
+        stt_engine = create_stt_engine(backend="google", language="en-US")
+        while True:
+            try:
+                print("\n🎤 Listening (say 'exit' to quit)...")
+                text = stt_engine.listen_once(timeout=20.0, phrase_time_limit=10.0)
+                if not text:
+                    print("(no speech detected)")
+                    continue
+                print(f"You: {text}")
+                if text.strip().lower() == "exit":
+                    print("Gemini Chatbot: Goodbye!")
+                    break
+                generateResponse(text, neutral_emotions)
+            except KeyboardInterrupt:
+                print("\nGoodbye!")
+                break
 
 
 def call_correlation_model(state: AgentState, config: RunnableConfig):
@@ -438,6 +623,14 @@ matplotlib.use("Agg")  # Use a non-interactive backend for file output only
 
 import matplotlib.pyplot as plt
 from typing import Any
+
+# Import speech-to-text functionality
+try:
+    from speech_to_text import create_stt_engine, create_interactive_stt, InteractiveSTT
+    STT_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: Speech-to-text not available: {e}")
+    STT_AVAILABLE = False
 
 
 # Force a non-Tk backend (QtAgg or WebAgg are good options)
