@@ -25,7 +25,6 @@ I have successfully implemented a comprehensive speech-to-text (STT) pipeline fo
 - **main.metta**: Updated with multiple main loop variants
   - `mainLoop()`: Mixed mode (default)
   - `mainLoopSpeech()`: Speech-only mode
-  - `mainLoopInteractiveSpeech()`: Interactive speech mode
   - `startCuriousAgent()`: Mode selection startup
 
 ### 3. Input Modes
