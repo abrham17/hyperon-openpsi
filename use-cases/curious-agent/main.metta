@@ -43,7 +43,7 @@
    )
 
 (= (mainLoop $emotionVals)
-     (let* (($userInput (pyModule getUserInputWithSTT ()))
+     (let* (($userInput (pyModule getUserInput ()))
             ($_ (pyModuleX visualizeEmotionValues $emotionVals))   
             )
             (if (== $userInput "exit")

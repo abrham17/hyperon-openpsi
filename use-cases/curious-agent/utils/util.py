@@ -240,7 +240,7 @@ def getUserInput():
     user_input = input("You: ")
     if user_input.strip().lower() == "exit":
         print("Gemini Chatbot: Goodbye!")
-        return
+        return "exit"
     return user_input
 
 
