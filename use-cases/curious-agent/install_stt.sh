@@ -69,41 +69,6 @@ echo "🐍 Installing Python dependencies..."
 # Upgrade pip first
 python -m pip install --upgrade pip
 
-# Install basic dependencies
-echo "Installing basic STT dependencies..."
-pip install speechrecognition
-pip install pydub
-
-# Install PyAudio (this might fail on some systems)
-echo "Installing PyAudio..."
-if pip install pyaudio; then
-    echo "✅ PyAudio installed successfully"
-else
-    echo "❌ PyAudio installation failed. This is common on some systems."
-    echo "Please install PyAudio manually:"
-    if [[ "$OS" == "linux" ]]; then
-        echo "  sudo apt-get install python3-pyaudio"
-    elif [[ "$OS" == "macos" ]]; then
-        echo "  brew install portaudio"
-        echo "  pip install pyaudio"
-    else
-        echo "  Download from: https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio"
-    fi
-fi
-
-# Install Whisper dependencies (optional)
-echo "Installing Whisper dependencies (optional)..."
-if pip install torch torchaudio; then
-    echo "✅ PyTorch installed successfully"
-    if pip install openai-whisper; then
-        echo "✅ Whisper installed successfully"
-    else
-        echo "⚠️ Whisper installation failed, but basic STT will still work"
-    fi
-else
-    echo "⚠️ PyTorch installation failed, Whisper will not be available"
-fi
-
 # Install remaining requirements
 echo "Installing remaining requirements..."
 pip install -r requirements.txt

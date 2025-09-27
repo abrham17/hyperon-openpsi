@@ -63,3 +63,6 @@ speechrecognition
 pyaudio
 pydub
 google-generativeai
+torch
+torchaudio
+openai-whisper
