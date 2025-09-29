@@ -41,7 +41,20 @@ echo "📦 Installing system dependencies..."
 if [[ "$OS" == "linux" ]]; then
     echo "Installing Linux dependencies..."
     sudo apt-get update
-    sudo apt-get install -y portaudio19-dev python3-pyaudio ffmpeg
+    sudo apt-get install -y \
+        portaudio19-dev \
+        python3-pyaudio \
+        python3-all-dev \
+        ffmpeg \
+        sox \
+        libgomp1 \
+        libstdc++6 \
+        libpthread-stubs0-dev \
+        pulseaudio \
+        pulseaudio-utils \
+        alsa-utils \
+        jackd2 \
+        libjack-jackd2-dev
     echo "✅ Linux dependencies installed"
     
 elif [[ "$OS" == "macos" ]]; then
@@ -79,7 +92,7 @@ echo ""
 echo "📋 Next steps:"
 echo "1. Test the installation: python test_stt.py"
 echo "2. Run the Curious Agent: metta main.metta"
-echo "3. Choose 'speech' or 'mixed' mode when prompted"
+echo "3. Choose 'speech' or 'text' mode when prompted"
 echo ""
 echo "📚 For more information, see SPEECH_TO_TEXT_GUIDE.md"
 echo ""
