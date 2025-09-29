@@ -248,64 +248,24 @@ def getUserInputWithSTT():
     """
     Enhanced input function that supports both text and speech input.
     """
-    print("\nInput options:")
-    print("1. Type 'text' for text input")
-    print("2. Type 'speech' for speech input")
-    print("3. Type 'exit' to quit")
-    
-    while True:
-        mode = input("\nChoose input mode (text/speech/exit): ").strip().lower()
-        
-        if mode == "exit":
-            print("Gemini Chatbot: Goodbye!")
-            return "exit"
-        elif mode == "text":
-            return input("You: ")
-        elif mode == "speech":
-            if not STT_AVAILABLE:
-                print("Speech-to-text not available. Please install required dependencies.")
-                print("Run: pip install speechrecognition pyaudio pydub openai-whisper")
-                continue
-            
-            try:
+    try:
                 stt_engine = create_stt_engine(backend="google", language="en-US")
-                print("\n Listening for speech... (up to 20 seconds)")
-                text = stt_engine.listen_once(timeout=100.0, phrase_time_limit=100.0)
+                interactive_stt = InteractiveSTT(stt_engine)
+                text = interactive_stt.get_speech_input("Speak now:")
                 
                 if text:
                     print(f" Heard: {text}")
                     return text
                 else:
                     print("No speech detected. Please try again.")
-                    continue
+                    text = input("You: ")
+                    return text
                     
-            except Exception as e:
+    except Exception as e:
                 print(f" Speech recognition error: {e}")
                 print("Falling back to text input...")
-                return input("You: ")
-        elif mode == "interactive":
-            if not STT_AVAILABLE:
-                print(" Speech-to-text not available. Please install required dependencies.")
-                print("Run: pip install speechrecognition pyaudio pydub openai-whisper")
-                continue
-            try:
-                # One-shot interactive capture that returns text to the main loop
-                stt_engine = create_stt_engine(backend="google", language="en-US")
-                interactive_stt = InteractiveSTT(stt_engine)
-                text = interactive_stt.get_speech_input("Speak now:")
-                if text:
-                    print(f"🎤 Heard: {text}")
-                    return text
-                else:
-                    print("❌ No speech detected. Switching to text.")
-                    return input("You: ")
-                    continue
-            except Exception as e:
-                print(f"❌ Speech recognition error: {e}")
-                print("Falling back to text input...")
-                return input("You: ")
-        else:
-            print("❌ Invalid option. Please choose 'text', 'speech', or 'exit'.")
+                text = input("You: ")
+                return text
 
 
 def startInteractiveSTT():
@@ -448,56 +408,6 @@ def test_func(name: str):
     # !(pyModule tes_func (param1, ...))
 
     return f"Hello, {name}!"
-
-
-def run_dialogue_loop():
-    """
-    Simple interactive loop entirely in Python.
-    - Lets the user pick input mode once (text or speech)
-    - Repeats until the user types/says 'exit'
-    - Uses a neutral emotion vector by default
-    """
-    try:
-        mode = chooseInputMode()
-    except Exception:
-        mode = "text"
-
-    neutral_emotions = "(hateValue 0.0 happinessValue 0.0 sadnessValue 0.0 angerValue 0.0)"
-
-    if mode == "text":
-        while True:
-            try:
-                user_input = input("You: ")
-            except KeyboardInterrupt:
-                print("\nGoodbye!")
-                break
-            if not user_input:
-                continue
-            if user_input.strip().lower() == "exit":
-                print("Gemini Chatbot: Goodbye!")
-                break
-            generateResponse(user_input, neutral_emotions)
-    else:
-        # speech mode
-        if not STT_AVAILABLE:
-            print("❌ Speech-to-text not available. Falling back to text.")
-            return run_dialogue_loop()
-        stt_engine = create_stt_engine(backend="google", language="en-US")
-        while True:
-            try:
-                print("\n🎤 Listening (say 'exit' to quit)...")
-                text = stt_engine.listen_once(timeout=20.0, phrase_time_limit=10.0)
-                if not text:
-                    print("(no speech detected)")
-                    continue
-                print(f"You: {text}")
-                if text.strip().lower() == "exit":
-                    print("Gemini Chatbot: Goodbye!")
-                    break
-                generateResponse(text, neutral_emotions)
-            except KeyboardInterrupt:
-                print("\nGoodbye!")
-                break
 
 
 def call_correlation_model(state: AgentState, config: RunnableConfig):
