@@ -17,30 +17,30 @@ def test_imports():
     
     try:
         from speech_to_text import create_stt_engine, create_interactive_stt, InteractiveSTT
-        print("✅ speech_to_text module imported successfully")
+        print(" speech_to_text module imported successfully")
     except ImportError as e:
-        print(f"❌ Failed to import speech_to_text: {e}")
+        print(f" Failed to import speech_to_text: {e}")
         return False
     
     try:
         import speech_recognition as sr
-        print("✅ speech_recognition imported successfully")
+        print(" speech_recognition imported successfully")
     except ImportError as e:
-        print(f"❌ Failed to import speech_recognition: {e}")
+        print(f" Failed to import speech_recognition: {e}")
         return False
     
     try:
         import pyaudio
-        print("✅ pyaudio imported successfully")
+        print(" pyaudio imported successfully")
     except ImportError as e:
-        print(f"❌ Failed to import pyaudio: {e}")
+        print(f" Failed to import pyaudio: {e}")
         return False
     
     try:
         from pydub import AudioSegment
-        print("✅ pydub imported successfully")
+        print(" pydub imported successfully")
     except ImportError as e:
-        print(f"❌ Failed to import pydub: {e}")
+        print(f" Failed to import pydub: {e}")
         return False
     
     return True
@@ -55,79 +55,79 @@ def test_microphone():
         mic = sr.Microphone()
         
         with mic as source:
-            print("✅ Microphone detected and accessible")
+            print(" Microphone detected and accessible")
             r.adjust_for_ambient_noise(source, duration=1)
-            print(f"✅ Energy threshold set to: {r.energy_threshold}")
+            print(f" Energy threshold set to: {r.energy_threshold}")
         
         return True
     except Exception as e:
-        print(f"❌ Microphone test failed: {e}")
+        print(f" Microphone test failed: {e}")
         return False
 
 def test_stt_engine_creation():
     """Test STT engine creation."""
-    print("\n🔧 Testing STT engine creation...")
+    print("\n Testing STT engine creation...")
     
     try:
         from speech_to_text import create_stt_engine
         
         # Test Google backend
         stt_google = create_stt_engine(backend="google", language="en-US")
-        print("✅ Google STT engine created successfully")
+        print(" Google STT engine created successfully")
         
         # Test Whisper backend (if available)
         try:
             stt_whisper = create_stt_engine(backend="whisper", language="en-US")
-            print("✅ Whisper STT engine created successfully")
+            print(" Whisper STT engine created successfully")
         except Exception as e:
-            print(f"⚠️ Whisper STT engine creation failed (expected if not installed): {e}")
+            print(f" Whisper STT engine creation failed (expected if not installed): {e}")
         
         return True
     except Exception as e:
-        print(f"❌ STT engine creation failed: {e}")
+        print(f" STT engine creation failed: {e}")
         return False
 
 def test_utils_integration():
     """Test integration with utils module."""
-    print("\n🔗 Testing utils integration...")
+    print("\n Testing utils integration...")
     
     try:
         from utils.util import getUserInputWithSTT, getSpeechInput, chooseInputMode
-        print("✅ STT functions imported from utils successfully")
+        print(" STT functions imported from utils successfully")
         
         # Test that functions are callable
-        print("✅ STT functions are callable")
+        print(" STT functions are callable")
         
         return True
     except ImportError as e:
-        print(f"❌ Failed to import STT functions from utils: {e}")
+        print(f" Failed to import STT functions from utils: {e}")
         return False
     except Exception as e:
-        print(f"❌ Utils integration test failed: {e}")
+        print(f" Utils integration test failed: {e}")
         return False
 
 def test_llm_integration():
     """Test integration with llm module."""
-    print("\n🤖 Testing LLM integration...")
+    print("\n Testing LLM integration...")
     
     try:
         from llm import getUserInputWithSTT, getSpeechInput, chooseInputMode
-        print("✅ STT functions imported from llm successfully")
+        print(" STT functions imported from llm successfully")
         
         # Test that functions are callable
-        print("✅ LLM STT functions are callable")
-        
+        print(" LLM STT functions are callable")
+
         return True
     except ImportError as e:
-        print(f"❌ Failed to import STT functions from llm: {e}")
+        print(f" Failed to import STT functions from llm: {e}")
         return False
     except Exception as e:
-        print(f"❌ LLM integration test failed: {e}")
+        print(f" LLM integration test failed: {e}")
         return False
 
 def test_audio_recording():
     """Test audio recording functionality."""
-    print("\n🔴 Testing audio recording...")
+    print("\n Testing audio recording...")
     
     try:
         from speech_to_text import create_stt_engine
@@ -138,18 +138,18 @@ def test_audio_recording():
         audio_file = stt.record_audio(duration=3.0)
         
         if os.path.exists(audio_file):
-            print(f"✅ Audio recorded successfully: {audio_file}")
+            print(f" Audio recorded successfully: {audio_file}")
             
             # Clean up
             os.unlink(audio_file)
-            print("✅ Temporary audio file cleaned up")
+            print(" Temporary audio file cleaned up")
             return True
         else:
-            print("❌ Audio file was not created")
+            print(" Audio file was not created")
             return False
             
     except Exception as e:
-        print(f"❌ Audio recording test failed: {e}")
+        print(f"Audio recording test failed: {e}")
         return False
 
 def test_speech_recognition():
@@ -160,7 +160,7 @@ def test_speech_recognition():
     response = input("Do you want to test speech recognition? (y/n): ").strip().lower()
     
     if response != 'y':
-        print("⏭️ Skipping speech recognition test")
+        print("⏭ Skipping speech recognition test")
         return True
     
     try:
@@ -172,19 +172,19 @@ def test_speech_recognition():
         text = stt.listen_once(timeout=5.0, phrase_time_limit=3.0)
         
         if text:
-            print(f"✅ Speech recognized: '{text}'")
+            print(f" Speech recognized: '{text}'")
             return True
         else:
-            print("❌ No speech was recognized")
+            print(" No speech was recognized")
             return False
             
     except Exception as e:
-        print(f"❌ Speech recognition test failed: {e}")
+        print(f"Speech recognition test failed: {e}")
         return False
 
 def main():
     """Run all tests."""
-    print("🧪 Speech-to-Text Integration Test Suite")
+    print("Speech-to-Text Integration Test Suite")
     print("=" * 50)
     
     tests = [
@@ -205,20 +205,20 @@ def main():
         try:
             if test_func():
                 passed += 1
-                print(f"✅ {test_name} PASSED")
+                print(f" {test_name} PASSED")
             else:
-                print(f"❌ {test_name} FAILED")
+                print(f" {test_name} FAILED")
         except Exception as e:
-            print(f"❌ {test_name} FAILED with exception: {e}")
-    
+            print(f" {test_name} FAILED with exception: {e}")
+
     print(f"\n{'='*50}")
-    print(f"📊 Test Results: {passed}/{total} tests passed")
+    print(f" Test Results: {passed}/{total} tests passed")
     
     if passed == total:
-        print("🎉 All tests passed! STT integration is working correctly.")
+        print(" All tests passed! STT integration is working correctly.")
         return True
     else:
-        print("⚠️ Some tests failed. Check the output above for details.")
+        print(" Some tests failed. Check the output above for details.")
         return False
 
 if __name__ == "__main__":

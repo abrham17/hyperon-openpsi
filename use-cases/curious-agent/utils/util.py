@@ -275,7 +275,7 @@ def startInteractiveSTT():
     calculation and calling the Gemini response (same as text mode).
     """
     if not STT_AVAILABLE:
-        print("❌ Speech-to-text not available. Please install required dependencies.")
+        print("Speech-to-text not available. Please install required dependencies.")
         print("Run: pip install speechrecognition pyaudio pydub openai-whisper")
         return None
 
@@ -286,7 +286,7 @@ def startInteractiveSTT():
         interactive_stt.start_interactive_mode(on_text=None)
         return interactive_stt
     except Exception as e:
-        print(f"❌ Failed to start interactive STT: {e}")
+        print(f"Failed to start interactive STT: {e}")
         return None
 
 
@@ -301,7 +301,7 @@ def getSpeechInput(prompt: str = "Speak now:") -> str:
         Transcribed text or empty string if no speech detected
     """
     if not STT_AVAILABLE:
-        print("❌ Speech-to-text not available. Please install required dependencies.")
+        print("Speech-to-text not available. Please install required dependencies.")
         return ""
     
     try:
@@ -309,7 +309,7 @@ def getSpeechInput(prompt: str = "Speak now:") -> str:
         interactive_stt = InteractiveSTT(stt_engine)
         return interactive_stt.get_speech_input(prompt) or ""
     except Exception as e:
-        print(f"❌ Speech recognition error: {e}")
+        print(f"Speech recognition error: {e}")
         return ""
 
 
@@ -317,7 +317,7 @@ def chooseInputMode() -> str:
     """
     Allow user to choose input mode (only 'text' or 'speech').
     """
-    print("\n🤖 Welcome to the Curious Agent!")
+    print("\nWelcome to the Curious Agent!")
     print("\nChoose your preferred input mode:")
     print("1. 'text'   - Traditional text input")
     print("2. 'speech' - Speech-to-text input")
@@ -326,13 +326,13 @@ def chooseInputMode() -> str:
         mode = input("\nEnter your choice (text/speech): ").strip().lower()
         
         if mode in ["text", "speech"]:
-            print(f"\n✅ Selected mode: {mode}")
+            print(f"\n Selected mode: {mode}")
             if mode == "speech" and not STT_AVAILABLE:
-                print("❌ Speech-to-text not available. Falling back to text.")
+                print(" Speech-to-text not available. Falling back to text.")
                 return "text"
             return mode
         else:
-            print("❌ Invalid choice. Please enter 'text' or 'speech'.")
+            print("Invalid choice. Please enter 'text' or 'speech'.")
 
 
 def generateResponse(user_input: str, emotion_vals: str):

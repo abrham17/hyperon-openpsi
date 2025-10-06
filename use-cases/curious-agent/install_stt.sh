@@ -5,14 +5,14 @@
 
 set -e  # Exit on any error
 
-echo "🎤 Installing Speech-to-Text Dependencies for Curious Agent"
+echo "Installing Speech-to-Text Dependencies for Curious Agent"
 echo "=========================================================="
 
 # Check if we're in a virtual environment
 if [[ "$VIRTUAL_ENV" != "" ]]; then
-    echo "✅ Virtual environment detected: $VIRTUAL_ENV"
+    echo "Virtual environment detected: $VIRTUAL_ENV"
 else
-    echo "⚠️ No virtual environment detected. It's recommended to use a virtual environment."
+    echo " No virtual environment detected. It's recommended to use a virtual environment."
     read -p "Do you want to continue anyway? (y/n): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -33,10 +33,10 @@ elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
     OS="windows"
 fi
 
-echo "🖥️ Detected OS: $OS"
+echo " Detected OS: $OS"
 
 # Install system dependencies
-echo "📦 Installing system dependencies..."
+echo " Installing system dependencies..."
 
 if [[ "$OS" == "linux" ]]; then
     echo "Installing Linux dependencies..."
@@ -55,21 +55,21 @@ if [[ "$OS" == "linux" ]]; then
         alsa-utils \
         jackd2 \
         libjack-jackd2-dev
-    echo "✅ Linux dependencies installed"
+    echo "Linux dependencies installed"
     
 elif [[ "$OS" == "macos" ]]; then
     echo "Installing macOS dependencies..."
     if command -v brew &> /dev/null; then
         brew install portaudio ffmpeg
-        echo "✅ macOS dependencies installed via Homebrew"
+        echo "macOS dependencies installed via Homebrew"
     else
-        echo "❌ Homebrew not found. Please install Homebrew first:"
+        echo " Homebrew not found. Please install Homebrew first:"
         echo "  /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
         exit 1
     fi
     
 elif [[ "$OS" == "windows" ]]; then
-    echo "⚠️ Windows detected. Please install PyAudio manually:"
+    echo " Windows detected. Please install PyAudio manually:"
     echo "  1. Download PyAudio wheel from: https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio"
     echo "  2. Install with: pip install [downloaded_wheel_file]"
     echo "  3. Or use conda: conda install pyaudio"
@@ -77,7 +77,7 @@ elif [[ "$OS" == "windows" ]]; then
 fi
 
 # Install Python dependencies
-echo "🐍 Installing Python dependencies..."
+echo " Installing Python dependencies..."
 
 # Upgrade pip first
 python -m pip install --upgrade pip
@@ -87,16 +87,16 @@ echo "Installing remaining requirements..."
 pip install -r requirements.txt
 
 echo ""
-echo "🎉 Installation complete!"
+echo " Installation complete!"
 echo ""
-echo "📋 Next steps:"
+echo " Next steps:"
 echo "1. Test the installation: python test_stt.py"
 echo "2. Run the Curious Agent: metta main.metta"
 echo "3. Choose 'speech' or 'text' mode when prompted"
 echo ""
-echo "📚 For more information, see SPEECH_TO_TEXT_GUIDE.md"
+echo " For more information, see SPEECH_TO_TEXT_GUIDE.md"
 echo ""
-echo "🔧 If you encounter issues:"
+echo " If you encounter issues:"
 echo "- Check microphone permissions"
 echo "- Ensure microphone is not being used by other applications"
 echo "- Test microphone with system audio settings"

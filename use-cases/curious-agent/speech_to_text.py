@@ -555,13 +555,13 @@ class InteractiveSTT:
 
     # No interactive loop; provide a simple one-shot input helper
     def get_speech_input(self, prompt: str = "Speak now:") -> Optional[str]:
-        return self.stt_engine.listen_once(timeout=100.0, phrase_time_limit=100.0)
+        return self.stt_engine.listen_once(timeout=10000000.0, phrase_time_limit=1000000.0)
 
     # Lightweight continuous loop for compatibility with callers expecting persistence
     def start_interactive_mode(self, on_text: Optional[Callable[[str], None]] = None):
         try:
             while True:
-                text = self.stt_engine.listen_once(timeout=20.0, phrase_time_limit=10.0)
+                text = self.stt_engine.listen_once(timeout=100.0, phrase_time_limit=100.0)
                 if text and on_text:
                     try:
                         on_text(text)
@@ -590,8 +590,8 @@ def test_audio_system():
         with ALSAErrorSuppressor():
             p = pyaudio.PyAudio()
         
-        print(f"✅ PyAudio initialized successfully")
-        print(f"📊 Found {p.get_device_count()} audio devices:")
+        print(f"PyAudio initialized successfully")
+        print(f"Found {p.get_device_count()} audio devices:")
         
         input_devices = []
         for i in range(p.get_device_count()):
@@ -601,21 +601,21 @@ def test_audio_system():
                 print(f"  🎤 Input {i}: {info['name']} (channels: {info['maxInputChannels']}, rate: {info['defaultSampleRate']})")
         
         if not input_devices:
-            print("❌ No input devices found!")
+            print(" No input devices found!")
             return False
         
         # Test device selection
         preferred_idx, preferred_rate = pick_input_device(p)
         if preferred_idx is not None:
-            print(f"✅ Selected device {preferred_idx} at {preferred_rate} Hz")
+            print(f" Selected device {preferred_idx} at {preferred_rate} Hz")
         else:
-            print("⚠️  Could not select a preferred device")
+            print("  Could not select a preferred device")
         
         p.terminate()
         return True
         
     except Exception as e:
-        print(f"❌ Audio system test failed: {e}")
+        print(f" Audio system test failed: {e}")
         return False
 
 
