@@ -22,7 +22,11 @@ def writeListToFile(outPutResult: List[str], fileName:str):
         for i in outPutResult:
             file.write(i + "\n")
 
-
+def appendListToFile(outPutResult: List[str], fileName:str):
+    with open(fileName, 'a') as file:
+        for i in outPutResult:
+            file.write(i + "\n")
+            
 def persistAtomspaceResult(result):
     refinedList = preprocessRawOutput(result)
     writeListToFile(refinedList,"out.metta")
