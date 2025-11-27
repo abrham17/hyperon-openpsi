@@ -24,6 +24,13 @@
   )
 )
 
+(= (fetchRulesFromDb $self)
+            (match $self 
+                ((: $ruleId ((TTV $tv $stv) (IMPLICATION_LINK (AND_LINK ((Goal $goal_name $gv $dgv) $action_name)) (Goal $goal_name' $gv' $dgv')))) $val)
+                ($goal_name $action_name $goal_name')
+            )
+)
+
 (= (addDemandGoalRels $space)
     (add-reduct $space (superpose (
       (: affiliation (Goal focused_response 1.0 1.0))
