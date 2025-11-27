@@ -33,9 +33,9 @@
         (let* (
             (($head $tail) (decons-atom $ruleList))
         )
-            (if (== $rule $rule')
+            (if (== $rule $head)
                 True
-                (ruleComparator $rule $tail)
+                (comparatorFn $rule $tail)
             )
         )
     )
